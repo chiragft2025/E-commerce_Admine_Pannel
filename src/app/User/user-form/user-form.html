@@ -1,0 +1,39 @@
+<div class="form-card">
+  <h2>{{ isEdit ? 'Edit user' : 'New user' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <label>Username</label>
+    <input formControlName="userName" />
+    <small style="color: red;" *ngIf="form.get('userName')?.touched && form.get('userName')?.invalid">Username is requried</small>
+
+    <label>Email</label>
+    <input formControlName="email" type="email" />
+    <small style="color: red;" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">Valid email required</small>
+
+    <label>Password</label>
+    <input formControlName="password" type="password" />
+    <small style="color: red;" *ngIf="!isEdit && form.get('password')?.touched && form.get('password')?.invalid">Min 6 chars</small>
+    <small style="color: green;" *ngIf="isEdit">Leave empty to keep existing password</small>
+
+    <label *ngIf="!isEdit">Roles</label>
+
+<select formControlName="roleIds" multiple size="6"  *ngIf="!isEdit" >
+  <option *ngFor="let r of roles" [ngValue]="r.id">{{ r.name }}</option>
+</select>
+
+<small *ngIf="roles.length === 0">No roles found.</small>
+
+    <label>
+      <input type="checkbox" formControlName="isActive" /> Active
+    </label>
+
+    <div *ngIf="errorList?.length" class="error" aria-live="polite">
+      <div *ngFor="let m of errorList; let i = index">{{ i+1 }}. {{ m }}</div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="saving">{{ isEdit ? 'Save' : 'Create' }}</button>
+      <button type="button" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+</div>

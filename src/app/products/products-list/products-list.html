@@ -1,0 +1,46 @@
+<div class="page-header">
+  <h3>Products</h3>
+  <div class="actions">
+    <input placeholder="Search..." [(ngModel)]="q" (keyup.enter)="onSearch()" />
+    <button (click)="onSearch()" [disabled]="loading">Search</button>
+    <button (click)="add()">Add product</button>
+  </div>
+</div>
+
+<div *ngIf="loading">Loading…</div>
+
+<table class="products-table" *ngIf="!loading && products?.length">
+  <thead>
+    <tr>
+      <th>Name</th><th>Price</th><th>Stock</th><th>SKU</th><th>Category</th><th>Tags</th><th>Active</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let p of products">
+      <td>{{ p.name }}</td>
+      <td>{{ p.price | number:'1.2-2' }}</td>
+      <td>{{ p.stock }}</td>
+      <td>{{ p.sku }}</td>
+      <td>{{ catTitle(p) }}</td>
+      <td>{{ tagsList(p) }}</td>
+      <td>{{ p.isActive ? 'Yes' : 'No' }}</td>
+      <td class="actions-col">
+        <button (click)="edit(p)">Edit</button>
+        <button (click)="remove(p)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div *ngIf="!loading && (!products || products.length === 0)">No products found.</div>
+
+<!-- pagination -->
+<div class="pagination" *ngIf="total > pageSize">
+  <button (click)="prev()" [disabled]="page===1">Prev</button>
+
+  <button *ngFor="let p of pages" (click)="goToPage(p)" [class.active]="p===page">{{ p }}</button>
+
+  <button (click)="next()" [disabled]="page === pages[pages.length-1]">Next</button>
+
+  <div class="pagination-info">Page {{page}} of {{pages.length}} — {{total}} items</div>
+</div>

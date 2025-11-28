@@ -1,0 +1,14 @@
+<div *ngIf="loading">Loading…</div>
+
+<div *ngIf="customer" class="detail-card">
+  <h2>{{ customer.fullName }}</h2>
+  <div class="row"><strong>Email:</strong> {{ customer.email }}</div>
+  <div class="row"><strong>Phone:</strong> {{ customer.phone }}</div>
+  <div class="row">
+    <strong>Address:</strong>
+    <div class="address">{{ customer.address }}</div>
+  </div>
+  <div><button (click)="cancel()">Back</button></div>
+</div>
+
+<div *ngIf="!customer && !loading">Customer not found.</div>

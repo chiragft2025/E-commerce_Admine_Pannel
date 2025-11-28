@@ -1,0 +1,4 @@
+.detail-card { max-width:700px; margin:18px auto; background:#fff; padding:16px; border-radius:8px; box-shadow:0 3px 10px rgba(0,0,0,0.04); }
+.detail-card h2 { margin-top:0; }
+.row { margin:8px 0; font-size:14px; }
+.address { margin-top:6px; padding:10px; background:#f9fafb; border-radius:6px; }

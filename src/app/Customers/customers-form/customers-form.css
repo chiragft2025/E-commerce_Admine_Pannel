@@ -1,0 +1,65 @@
+.form-card {
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 20px;
+  background:white;
+  border-radius:8px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+form {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+label {
+  font-weight:600;
+}
+
+input, textarea {
+  width:100%;
+  padding:10px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
+textarea {
+  min-height:70px;
+}
+
+.error {
+  background:#ffe8e8;
+  padding:8px;
+  color:#d00;
+  border-radius:6px;
+}
+
+.actions {
+  display:flex;
+  gap:10px;
+  margin-top:10px;
+}
+
+.actions button {
+  padding:8px 14px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.actions button:first-child {
+  background:#28a745;
+  color:white;
+}
+
+.actions button:last-child {
+  background:#6c757d;
+  color:white;
+}
+
+@media (max-width:600px) {
+  .form-card { padding:16px; }
+  .actions { flex-direction:column; }
+  .actions button { width:100%; }
+}

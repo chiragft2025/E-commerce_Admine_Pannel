@@ -1,0 +1,42 @@
+<div class="page-header">
+  <h3>Customers</h3>
+
+  <div class="actions">
+    <input placeholder="Search by name or email..." [(ngModel)]="q" (keyup.enter)="onSearch()" />
+    <button (click)="onSearch()">Search</button>
+    <button class="add-btn" (click)="add()">New Customer</button>
+  </div>
+</div>
+
+<div *ngIf="loading">Loading…</div>
+
+<div class="table-wrapper">
+  <table class="customers-table" *ngIf="!loading && customers?.length">
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th></th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of customers">
+        <td>{{ c.fullName }}</td>
+        <td>{{ c.email }}</td>
+        <td>{{ c.phone }}</td>
+        <td>{{ c.address }}</td>
+        <td class="actions-col">
+          <button (click)="view(c)">View</button>
+          <button (click)="edit(c)">Edit</button>
+          <button (click)="remove(c)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div *ngIf="!loading && (!customers || customers.length === 0)">No customers found.</div>
+
+<!-- paging -->
+<div class="pagination" *ngIf="total > pageSize">
+  <button (click)="goToPage(page-1)" [disabled]="page===1">Prev</button>
+  <button *ngFor="let p of [].constructor(pageCount); let i = index" (click)="goToPage(i+1)" [class.active]="i+1===page">{{ i+1 }}</button>
+  <button (click)="goToPage(page+1)" [disabled]="page===pageCount">Next</button>
+  <div class="pagination-info">Page {{page}} of {{pageCount}} — {{total}} items</div>
+</div>

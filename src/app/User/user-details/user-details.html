@@ -1,0 +1,45 @@
+<div class="details-card" *ngIf="!loading && user">
+  <h2>User Details</h2>
+
+  <div class="row">
+    <label>User ID:</label>
+    <p>{{ user.id }}</p>
+  </div>
+
+  <div class="row">
+    <label>Username:</label>
+    <p>{{ user.userName }}</p>
+  </div>
+
+  <div class="row">
+    <label>Email:</label>
+    <p>{{ user.email }}</p>
+  </div>
+
+  <div class="row">
+    <label>Status:</label>
+    <p>
+      <span class="status" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+        {{ user.isActive ? 'Active' : 'Inactive' }}
+      </span>
+    </p>
+  </div>
+
+  <!-- Roles -->
+  <div class="row">
+    <label>Roles:</label>
+    <p>
+      <span class="badge" *ngFor="let r of user.roles">{{ r.name || r }}</span>
+    </p>
+  </div>
+
+  <div class="actions">
+    <button routerLink="/">Back</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading" *ngIf="loading">Loading...</div>
+
+<!-- ERROR -->
+<div class="error" *ngIf="error">{{ error }}</div>

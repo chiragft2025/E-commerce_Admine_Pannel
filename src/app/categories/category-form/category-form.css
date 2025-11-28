@@ -1,0 +1,96 @@
+.form-card {
+  max-width: 500px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+h2 {
+  margin: 0 0 20px 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+label {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  outline: none;
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #007bff;
+}
+
+small {
+  color: #d9534f;
+  font-size: 12px;
+}
+
+button[type="submit"] {
+  background: #28a745;
+  color: white;
+  padding: 10px 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+button[type="submit"]:hover {
+  background: #218838;
+}
+
+button[type="button"] {
+  background: #6c757d;
+  color: white;
+  padding: 10px 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+button[type="button"]:hover {
+  background: #5a6268;
+}
+
+/* RESPONSIVE */
+@media (max-width: 500px) {
+  .form-card {
+    margin: 10px;
+    padding: 15px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  input,
+  textarea {
+    font-size: 13px;
+  }
+
+  button {
+    width: 100%;
+  }
+}

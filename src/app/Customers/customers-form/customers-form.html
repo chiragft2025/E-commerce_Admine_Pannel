@@ -1,0 +1,32 @@
+<div class="form-card">
+  <h2>{{ isEdit ? 'Edit Customer' : 'New Customer' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+
+    <label>Name</label>
+    <input formControlName="fullName" />
+    <small *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid">
+      Required
+    </small>
+
+    <label>Email</label>
+    <input formControlName="email" />
+    <small *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+      Invalid email
+    </small>
+
+    <label>Phone</label>
+    <input formControlName="phone" />
+
+    <label>Address</label>
+    <textarea formControlName="address"></textarea>
+
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div class="actions">
+      <button type="submit">{{ isEdit ? 'Update' : 'Create' }}</button>
+      <button type="button" (click)="cancel()">Cancel</button>
+    </div>
+
+  </form>
+</div>

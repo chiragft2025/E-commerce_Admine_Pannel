@@ -1,0 +1,113 @@
+.form-card {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px 24px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+h2 {
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+textarea {
+  min-height: 70px;
+}
+
+.tag-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.tag-row button {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.add-tag {
+  padding: 8px 12px;
+  background: #0d6efd;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.error {
+  background: #ffecec;
+  border-left: 3px solid #e63946;
+  padding: 10px;
+  color: #e63946;
+  border-radius: 6px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.actions button {
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.actions button:first-child {
+  background: #28a745;
+  color: #fff;
+}
+
+.actions button:last-child {
+  background: #6c757d;
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .form-card {
+    padding: 15px;
+  }
+
+  .tag-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions button {
+    width: 100%;
+  }
+}

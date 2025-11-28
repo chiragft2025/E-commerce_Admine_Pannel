@@ -1,0 +1,25 @@
+<div class="page-header">
+  <h3>Roles</h3>
+  <div class="actions">
+    <button class="add-btn" (click)="add()">New Role</button>
+  </div>
+</div>
+
+<table class="roles-table" *ngIf="!loading && roles?.length">
+  <thead>
+    <tr><th>Name</th><th>Description</th><th>Active</th><th></th></tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let r of roles">
+      <td>{{ r.name }}</td>
+      <td>{{ r.description }}</td>
+      <td>{{ r.isActive ? 'Yes' : 'No' }}</td>
+      <td class="actions-col">
+        <button (click)="edit(r)">Edit</button>
+        <button (click)="remove(r)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div *ngIf="!loading && (!roles || roles.length === 0)">No roles found.</div>

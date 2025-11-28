@@ -1,0 +1,41 @@
+<div class="form-card">
+  <h2>New Order</h2>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <label>Customer</label>
+    <select formControlName="customerId">
+      <option value="">-- select customer --</option>
+      <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.fullName }}</option>
+    </select>
+
+    <label>Shipping Address (optional)</label>
+    <textarea formControlName="shippingAddress"></textarea>
+
+    <label>Items</label>
+    <div formArrayName="items">
+      <div *ngFor="let item of itemsArr.controls; let i=index" [formGroupName]="i" class="item-row">
+        <div class="row">
+          <input placeholder="Product ID" formControlName="productId" type="number" />
+          <input placeholder="Product name" formControlName="productName" readonly />
+        </div>
+        <div class="row">
+          <input placeholder="Unit price" formControlName="unitPrice" type="number" readonly />
+          <input placeholder="Stock" formControlName="stock" type="number" readonly />
+          <input placeholder="Quantity" formControlName="quantity" type="number" />
+          <button type="button" (click)="removeItem(i)">Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" (click)="addItem()">+ Add Item</button>
+
+    <div class="summary">Total: {{ total | number:'1.2-2' }}</div>
+
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="saving">Place order</button>
+      <button type="button" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+</div>

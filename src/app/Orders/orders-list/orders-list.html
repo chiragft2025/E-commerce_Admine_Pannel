@@ -1,0 +1,30 @@
+<div class="page-header">
+  <h3>Orders</h3>
+  <div class="actions">
+    <button class="add-btn" (click)="create()">New Order</button>
+  </div>
+</div>
+
+<table class="products-table" *ngIf="!loading && orders.length">
+  <thead>
+    <tr><th>ID</th><th>Placed</th><th>Customer</th><th>Status</th><th>Total</th><th></th></tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let o of orders">
+      <td>{{o.id}}</td>
+      <td>{{o.placedAt | date:'short'}}</td>
+      <td>{{o.customer?.fullName}}</td>
+      <td>{{o.status}}</td>
+      <td>{{o.totalAmount | number:'1.2-2'}}</td>
+      <td><button (click)="view(o)">View</button></td>
+    </tr>
+  </tbody>
+</table>
+
+<div *ngIf="!loading && orders.length===0">No orders found.</div>
+
+<div class="pagination" *ngIf="total > pageSize">
+  <button (click)="prev()" [disabled]="page===1">Prev</button>
+  <span>Page {{page}} of {{ pageCount }}</span>
+  <button (click)="next()" [disabled]="page===pageCount">Next</button>
+</div>

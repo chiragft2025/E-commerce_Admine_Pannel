@@ -1,0 +1,15 @@
+<div class="form-card">
+  <h2>{{ isEdit ? "Edit Category" : "New Category" }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <label>Title</label>
+    <input formControlName="title" />
+    <small *ngIf="form.get('title')?.touched && form.get('title')?.invalid">* Title is Required</small>
+
+    <label>Description</label>
+    <textarea formControlName="description"></textarea>
+
+    <button type="submit">{{ isEdit ? "Update" : "Create" }}</button>
+    <button type="button" (click)="cancel()">Cancel</button>
+  </form>
+</div>

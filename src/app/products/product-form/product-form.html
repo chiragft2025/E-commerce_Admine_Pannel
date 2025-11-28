@@ -1,0 +1,65 @@
+<div class="form-card">
+  <h2>{{ isEdit ? 'Edit Product' : 'Add Product' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <label>Name</label>
+    <input formControlName="name" />
+    <small *ngIf="form.get('name')?.touched && form.get('name')?.invalid" style="color: red">
+      * Name is Required
+    </small>
+
+    <label>SKU</label>
+    <input formControlName="sku" />
+    <small *ngIf="form.get('sku')?.touched && form.get('sku')?.invalid" style="color: red">
+      * Sku is Required
+    </small>
+
+    <label>Description</label>
+    <textarea formControlName="description"></textarea>
+
+    <label>Price</label>
+    <input type="number" formControlName="price" min="0" />
+    <small *ngIf="form.get('price')?.touched && form.get('price')?.invalid" style="color: red">
+      Must be 0 or more
+    </small>
+
+    <label>Stock</label>
+    <input type="number" formControlName="stock" min="0" />
+    <small *ngIf="form.get('stock')?.touched && form.get('stock')?.invalid" style="color: red">
+      Must be more than 0
+    </small>
+
+    <label>Active</label>
+    <input type="checkbox" formControlName="isActive" />
+
+    <!-- Category Dropdown -->
+    <label>Category</label>
+    <select formControlName="categoryId">
+      <option value="">-- Select Category --</option>
+      <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.title }}</option>
+    </select>
+    <small *ngIf="form.get('categoryId')?.touched && form.get('categoryId')?.invalid">
+      Required
+    </small>
+
+    <!-- Tags -->
+    <label>Tags</label>
+    <div formArrayName="tags">
+      <div *ngFor="let tg of tagsArray.controls; let i = index" [formGroupName]="i" class="tag-row">
+        <input formControlName="name" placeholder="Tag name" />
+        <button type="button" (click)="removeTag(i)">X</button>
+      </div>
+    </div>
+
+    <button type="button" class="add-tag" (click)="addTag()">+ Add Tag</button>
+
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="saving">
+        {{ isEdit ? 'Update' : 'Create' }}
+      </button>
+      <button type="button" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+</div>

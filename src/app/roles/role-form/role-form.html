@@ -1,0 +1,40 @@
+<div class="form-card">
+  <h2>{{ isEdit ? 'Edit Role' : 'New Role' }}</h2>
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <label>Name</label>
+    <input formControlName="name" />
+    <small *ngIf="form.get('name')?.touched && form.get('name')?.invalid">Required</small>
+
+    <label>Description</label>
+    <textarea formControlName="description"></textarea>
+
+    <label>
+      <input type="checkbox" formControlName="isActive" /> Active
+    </label>
+
+    <div class="permissions-block">
+      <h4>Permissions</h4>
+      <div *ngIf="permissions.length === 0">No permissions available.</div>
+
+      <div class="permissions-grid">
+        <label *ngFor="let p of permissions" class="perm-item">
+          <input
+            type="checkbox"
+            [checked]="isChecked(p.id)"
+            (change)="togglePermission(p.id, $event.target.checked)"
+          />
+          <span class="perm-name">{{ p.name }}</span>
+          <div class="perm-desc" *ngIf="p.description">{{ p.description }}</div>
+        </label>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="error">{{ error }}</div>
+
+    <div class="actions">
+      <button type="submit" [disabled]="saving">{{ isEdit ? 'Update' : 'Create' }}</button>
+      <button type="button" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+</div>

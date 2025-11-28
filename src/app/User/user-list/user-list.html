@@ -1,0 +1,42 @@
+<div class="page-header">
+  <h2>Users</h2>
+  <div class="actions">
+    <input
+      placeholder="Search by name or email..."
+      [(ngModel)]="search"
+      (keyup.enter)="onEnter()"
+    />
+    <button (click)="load(search)">Search</button>
+    <button (click)="add()">Add User</button>
+  </div>
+</div>
+
+<div *ngIf="loading">Loading…</div>
+
+<table *ngIf="!loading && users.length" class="users-table">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Active</th>
+      <th>Roles</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let u of users">
+      <td>{{ u.userName }}</td>
+      <td>{{ u.email }}</td>
+      <td>{{ u.isActive ? 'Yes' : 'No' }}</td>
+      <td>
+        {{ displayRoles(u) }}
+      </td>
+      <td class="actions-col">
+        <button (click)="edit(u)">Edit</button>
+        <button (click)="remove(u)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<div *ngIf="!loading && (!users || users.length === 0)">No users found.</div>

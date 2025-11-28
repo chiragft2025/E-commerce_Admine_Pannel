@@ -1,0 +1,5 @@
+.page-header { display:flex; justify-content:space-between; align-items:center; margin:12px 0; }
+.add-btn { padding:8px 12px; background:#0f62fe; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+.roles-table { width:100%; border-collapse:collapse; }
+.roles-table th, .roles-table td { padding:10px; border:1px solid #eaeaea; text-align:left; }
+.actions-col button { margin-left:6px; padding:6px 8px; }

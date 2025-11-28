@@ -1,0 +1,28 @@
+<div class="page-header">
+  <h2>Categories</h2>
+  <button (click)="add()">Add Category</button>
+</div>
+
+<table *ngIf="categories.length">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Description</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+   <tr *ngFor="let c of categories">
+  <td data-label="Title">{{ c.title }}</td>
+  <td data-label="Description">{{ c.description }}</td>
+  <td data-label="Actions">
+    <div class="actions">
+      <button (click)="edit(c)">Edit</button>
+      <button (click)="remove(c)">Delete</button>
+    </div>
+  </td>
+</tr>
+  </tbody>
+</table>
+
+<div *ngIf="!categories.length">No categories found.</div>
