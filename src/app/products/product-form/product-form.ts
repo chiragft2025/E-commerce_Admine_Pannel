@@ -5,6 +5,7 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 
 import { ProductService } from '../../services/product';
 import { CategoryService } from '../../services/category';
+// <-- updated import path (adjust relative path if your file layout differs)
 import { Category } from '../../models/categories.model';
 import { Product } from '../../models/product.model';
 
@@ -46,9 +47,23 @@ export class ProductForm implements OnInit {
       tags: this.fb.array([]) // [{"name":""},...]
     });
 
-    // Load categories first
-    this.cs.list().subscribe({
-      next: (cats) => (this.categories = cats),
+    // Load categories in a defensive way (accept plain array or paged response)
+    // If your CategoryService.list supports pagination, call it with params, otherwise
+    // this will still work because we detect the shape of the response.
+    this.cs.list?.(1, 100, '').subscribe({
+      next: (res: any) => {
+        // res can be: Category[]  OR  { items: Category[], page, totalPages, ... }
+        if (!res) {
+          this.categories = [];
+        } else if (Array.isArray(res)) {
+          this.categories = res;
+        } else if (Array.isArray(res.items)) {
+          this.categories = res.items;
+        } else {
+          // fallback: try to coerce common property names (robust)
+          this.categories = Array.isArray(res.data) ? res.data : [];
+        }
+      },
       error: (e) => console.error('Failed to load categories', e),
     });
 
@@ -89,7 +104,8 @@ export class ProductForm implements OnInit {
           price: p.price,
           stock: p.stock,
           isActive: p.isActive,
-          categoryId: p.category?.id ?? p.categoryId
+          // support both p.category (object) or p.categoryId (id)
+          categoryId: (p as any).category?.id ?? (p as any).categoryId ?? ''
         });
 
         // Load tags

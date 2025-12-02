@@ -1,11 +1,9 @@
 <!-- Bootstrap-based Login Page -->
 <div class="auth-page d-flex align-items-center justify-content-center">
   <div class="auth-card shadow p-4 p-md-5">
-
     <h1 class="text-center mb-4">Login</h1>
 
     <form (ngSubmit)="submit()" [formGroup]="form" novalidate>
-
       <!-- Username -->
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
@@ -41,6 +39,9 @@
           Password is required
         </div>
       </div>
+      <div  *ngIf="[error]">
+        <p class="error">{{ error }}</p>
+      </div>
 
       <!-- Login button -->
       <div class="d-grid mt-3">
@@ -52,6 +53,5 @@
       Don’t have an account?
       <a routerLink="/register" class="text-primary fw-semibold">Register</a>
     </p>
-
   </div>
 </div>

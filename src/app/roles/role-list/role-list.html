@@ -2,7 +2,20 @@
   <div class="page-header d-flex align-items-center justify-content-between mb-3">
     <h3 class="mb-0">Roles</h3>
 
-    <div class="actions">
+    <div class="actions d-flex align-items-center gap-2">
+      <input
+        class="form-control form-control-sm"
+        placeholder="Search by name or description..."
+        [(ngModel)]="search"
+        (ngModelChange)="onSearchChange($event)"
+        (keyup.enter)="onEnter()"
+        aria-label="Search roles"
+      />
+
+      <button class="btn btn-sm btn-outline-secondary" (click)="onSearchChange(search)" aria-label="Search">
+        <i class="bi bi-search"></i>
+      </button>
+
       <button class="btn btn-sm btn-primary" (click)="add()" aria-label="New Role">
         <i class="bi bi-plus-lg me-1"></i> New Role
       </button>
@@ -51,4 +64,23 @@
       No roles found.
     </div>
   </ng-template>
+
+  <!-- Pagination -->
+  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Page navigation">
+      <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
+      <button class="btn btn-outline-secondary" disabled>Page {{ page }} of {{ pageCount }}</button>
+      <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === pageCount">Next</button>
+    </div>
+
+    <div class="pagination-info text-muted small">
+      <ng-container *ngIf="total > 0; else noTotal">
+        Showing {{ ((page - 1) * pageSize) + 1 }} – {{ ((page - 1) * pageSize) + (roles?.length || 0) }} of {{ total }}
+      </ng-container>
+
+      <ng-template #noTotal>
+        Showing {{ roles?.length || 0 }} roles
+      </ng-template>
+    </div>
+  </div>
 </div>

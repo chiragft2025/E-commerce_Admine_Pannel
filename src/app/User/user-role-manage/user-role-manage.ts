@@ -68,6 +68,11 @@ export class UserRoleManage implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private normalizeRole(r: RoleDto): RoleDto {
+    // ensure id is a number (defensive)
+    return { ...r, id: r.id != null ? Number(r.id) : r.id } as RoleDto;
+  }
+
   private loadData() {
     this.loading = true;
     this.error = null;
@@ -76,7 +81,7 @@ export class UserRoleManage implements OnInit, OnDestroy {
       catchError(err => {
         console.error('Failed to load roles', err);
         // return empty array so UI can still show user info
-        return of([]);
+        return of([] as RoleDto[]);
       })
     );
 
@@ -92,7 +97,9 @@ export class UserRoleManage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ([roles, user]) => {
-          this.availableRoles = roles;
+          // normalize role ids to numbers to avoid string/number mismatch
+          this.availableRoles = (roles || []).map(r => this.normalizeRole(r));
+
           if (!user) {
             this.error = 'User not found.';
             this.loading = false;
@@ -121,12 +128,15 @@ export class UserRoleManage implements OnInit, OnDestroy {
   }
 
   toggleRoleSelection(roleId: number, selected: boolean) {
-    if (selected) this.selectedRoleIdsSet.add(roleId);
-    else this.selectedRoleIdsSet.delete(roleId);
+    // coerce roleId to number just in case
+    const id = Number(roleId);
+    if (selected) this.selectedRoleIdsSet.add(id);
+    else this.selectedRoleIdsSet.delete(id);
   }
 
   isSelected(roleId: number): boolean {
-    return this.selectedRoleIdsSet.has(roleId);
+    // coerce to number for comparison
+    return this.selectedRoleIdsSet.has(Number(roleId));
   }
 
   // Save selected roles
@@ -154,6 +164,9 @@ export class UserRoleManage implements OnInit, OnDestroy {
           // refresh user (optional)
           this.us.get(this.userId).pipe(takeUntil(this.destroy$)).subscribe(u => {
             this.user = u;
+            // keep UI selection in sync (rebuild set)
+            this.selectedRoleIdsSet.clear();
+            if (u?.roleIds?.length) u.roleIds.forEach(id => this.selectedRoleIdsSet.add(Number(id)));
           });
 
           // navigate back to users list or show a message

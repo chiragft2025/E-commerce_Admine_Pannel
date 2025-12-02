@@ -1,6 +1,10 @@
+// src/styles.scss
+// Responsive, Bootstrap-friendly global styles for the admin UI
+// Replace your current styles.scss with this (it preserves your tokens & overrides)
 
-$brand-primary: #0ea5e9;   // your primary (blue)
-$brand-accent:  #6d28d9;   // your accent (purple)
+// -------------------- Theme tokens --------------------
+$brand-primary: #0ea5e9;
+$brand-accent:  #6d28d9;
 $body-bg:       #f3f7fb;
 $body-color:    #0f172a;
 $card-radius:   12px;
@@ -18,16 +22,19 @@ $theme-colors: (
 );
 
 $font-family-base: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-$enable-rounded: true;
 $border-radius: $card-radius;
 
-// Import Bootstrap core (use node_modules path)
+// layout breakpoints (matching bootstrap-ish scale)
+$bp-sm: 576px;
+$bp-md: 768px;
+$bp-lg: 992px;
+$bp-xl: 1200px;
+
+// -------------------- Bootstrap --------------------
 @use "bootstrap" as *;
 
-// --- Global base overrides ---
-html, body, app-root {
-  height: 100%;
-}
+// -------------------- Base --------------------
+html, body, app-root { height: 100%; }
 
 body {
   margin: 0;
@@ -37,15 +44,19 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.45;
+  -webkit-font-feature-settings: "liga" 1;
 }
 
-/* Keep container spacing smaller than bootstrap default if desired */
-.app-container,
-.container {
-  padding: 1rem;
+/* container spacing tuned for admin */
+.app-container, .container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 1200px;
 }
 
-/* Card / auth styles (keeps your original look, but uses bootstrap utility classes) */
+// -------------------- Cards & Forms --------------------
 .auth-card, .card, .form-card, table {
   width: 100%;
   background: #fff;
@@ -54,11 +65,15 @@ body {
   box-shadow: $card-shadow;
 }
 
-/* Form Card Specific Width Override */
+/* Smaller padding on tiny screens to save space */
 .form-card {
   max-width: 900px;
   margin: 20px auto;
   padding: 28px;
+  @media (max-width: $bp-sm) {
+    padding: 18px;
+    margin: 12px auto;
+  }
 }
 
 /* Headings */
@@ -68,23 +83,9 @@ body {
   color: #0b1220;
 }
 
-/* Forms */
-form, .form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
+/* Inputs & labels */
+label { display: block; font-size: .95rem; margin-bottom: 6px; color: #334155; }
 
-/* Labels + Inputs: keep focus glow but allow bootstrap .form-control to be used */
-label {
-  display: block;
-  font-size: .95rem;
-  margin-bottom: 6px;
-  color: #334155;
-}
-
-/* If you use bootstrap classes (preferred), bootstrap's .form-control will apply.
-   Add slight overrides to match original look when native bootstrap classes are used. */
 .form-control, input.form-control, textarea.form-control, select.form-select {
   border-radius: 8px;
   border: 1px solid #e6eaf0;
@@ -92,37 +93,50 @@ label {
   font-size: 1rem;
   color: $body-color;
   transition: border-color .12s ease, box-shadow .12s ease;
+  min-height: 2.5rem;
 }
+
+.form-control::placeholder { color: darken(#e6eaf0, 20%); }
 
 .form-control:focus, .form-select:focus {
   border-color: $brand-primary;
   box-shadow: 0 0 0 6px rgba($brand-primary, 0.06);
+  outline: none;
 }
 
-/* Buttons: favor bootstrap's .btn; map your .btn helpers to bootstrap classes */
+/* Buttons */
 .btn, button {
   border-radius: 8px;
   font-weight: 600;
+  transition: transform .06s ease, box-shadow .06s ease;
 }
 
-/* Keep special ghost class */
+button:hover:not(:disabled), .btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* Make primary actions full-width on small screens */
+@media (max-width: $bp-sm) {
+  .btn.btn-primary, .d-grid .btn {
+    width: 100%;
+    display: block;
+  }
+}
+
+// ghost variant
 .btn.ghost, button.ghost {
   background: transparent;
   color: $body-color;
   border: 1px solid rgba(15,23,42,0.06);
 }
 
-/* Error text / validation */
-.error, .form-error, small {
-  color: map-get($theme-colors, "danger");
-  font-size: .875rem;
-}
+/* Validation */
+.error, .form-error, small { color: map-get($theme-colors, "danger"); font-size: .875rem; }
 
-/* Tiny helpers */
+// -------------------- Layout helpers --------------------
 .text-center { text-align: center; }
 .mb-0 { margin-bottom: 0; }
 
-/* Page header area */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -135,90 +149,164 @@ label {
   align-items: center;
 }
 
-/* Tag-row (product form) */
-.tag-row {
+/* Sidebar-related helpers (for persistent left sidebar + offcanvas) */
+.app-shell { min-height: 100vh; display: flex; flex-direction: row; }
+
+.sidebar {
+  width: 240px;
+  min-width: 220px;
+  max-width: 260px;
+  background: #fff;
+  border-right: 1px solid rgba(0,0,0,0.04);
   display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.tag-row button {
-  background: #fee2e2;
-  color: map-get($theme-colors, "danger");
-  border: 1px solid #fecaca;
-  padding: 6px 10px;
-  width: auto;
-  font-weight: normal;
+  flex-direction: column;
+  padding: 0;
+  .brand { height: 64px; display:flex; align-items:center; padding: 0 1rem; }
+  nav.nav { padding: .5rem 1rem; }
+  .nav-link { color: #334155; border-radius: 8px; padding: .5rem .75rem; margin-bottom: .25rem; display:block; }
+  .nav-link.active { color: $brand-primary; background: rgba($brand-primary, 0.06); font-weight:600; }
+  .sidebar-footer { padding: .75rem; border-top: 1px solid rgba(0,0,0,0.03); }
 }
 
-/* Actions container for form */
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
+/* Hide persistent sidebar on small screens; offcanvas used instead (Bootstrap offcanvas) */
+@media (max-width: $bp-md) {
+  .sidebar { display: none; }
+  .app-shell[data-sidebar-open="true"] .overlay { display: block; }
 }
 
-/* Empty / loading states */
-.loading-message, .no-products-found, .no-categories-found {
-  padding: 28px;
-  text-align: center;
-  margin-top: 1rem;
-  color: #64748b;
-  font-style: italic;
+/* overlay for mobile when offcanvas toggled */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1040; // above offcanvas content
 }
 
-/* Responsive table (mobile stacked variant) */
-/* Prefer bootstrap's .table-responsive for desktop; keep this stacked mode for small screens */
+/* Topbar */
+.topbar {
+  height: 64px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  background: white;
+  .topbar-title { font-weight:700; color: $body-color; }
+  .icon-btn { border: none; background: transparent; font-size: 1.1rem; }
+}
+
+/* main content needs to grow and be scrollable */
+.main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.content { flex: 1 1 auto; overflow:auto; padding: 1.5rem 0; }
+
+// -------------------- Tables (desktop + stacked mobile) --------------------
+table {
+  border-collapse: collapse;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Default desktop table spacing */
+thead th {
+  background: #f8fafc;
+  color: #0f172a;
+  padding: 12px 1rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+tbody td {
+  padding: 12px 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+}
+
+/* Table card look */
+.table-responsive > .table {
+  background: #fff;
+  border-radius: $card-radius;
+  border: 1px solid $card-border;
+  box-shadow: $card-shadow;
+}
+
+/* Mobile stacked fallback (keeps data-label usage) */
 @media screen and (max-width: 900px) {
   table thead { display: none; }
 
-  table, tbody, tr, td {
-    display: block;
-    width: 100%;
-  }
-
-  tbody tr {
-    margin-bottom: 1rem;
-    border: 1px solid rgba(15,23,42,0.06);
-    border-radius: 8px;
-    overflow: hidden;
-  }
-
-  tbody td {
-    text-align: right;
-    padding-left: 50%;
-    position: relative;
-    border-bottom: 1px solid #f1f5f9;
-  }
-
-  tbody td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 1rem;
-    width: calc(50% - 2rem);
-    text-align: left;
-    font-weight: 600;
-    color: #334155;
-  }
-
-  td[data-label="Actions"], .actions-col {
-    text-align: left;
-    padding-left: 1rem;
-    border-bottom: none;
-    display: flex;
-    justify-content: flex-end;
-  }
-
-  td[data-label="Actions"] button {
-    margin-left: 10px;
-  }
+  table, tbody, tr, td { display: block; width: 100%; }
+  tbody tr { margin-bottom: 1rem; border: 1px solid rgba(15,23,42,0.06); border-radius: 8px; overflow: hidden; }
+  tbody td { text-align: right; padding-left: 50%; position: relative; border-bottom: 1px solid #f1f5f9; }
+  tbody td::before { content: attr(data-label); position: absolute; left: 1rem; width: calc(50% - 2rem); text-align: left; font-weight: 600; color: #334155; }
+  td[data-label="Actions"], .actions-col { text-align: left; padding-left: 1rem; border-bottom: none; display:flex; justify-content:flex-end; }
 }
 
-/* Small screens tweaks */
-@media (max-width: 560px) {
-  .auth-page { padding: 1.25rem; }
-  .auth-card { padding: 18px; }
+/* small screens table tweaks */
+@media (max-width: $bp-sm) {
+  thead th, tbody td { padding: .6rem .75rem; font-size: .9rem; }
 }
+
+// -------------------- Forms & small-screen stacks --------------------
+/* form rows should wrap gracefully */
+form .row { margin-left: -0.5rem; margin-right: -0.5rem; }
+form .row > [class*="col-"] { padding-left: .5rem; padding-right: .5rem; }
+
+/* On small screens, stack form labels and inputs tightly */
+@media (max-width: $bp-sm) {
+  form, .form { gap: 8px; }
+  label { font-size: .9rem; margin-bottom: 4px; }
+  .form-card { padding: 16px; }
+  .form-control { font-size: .95rem; min-height: 2.3rem; }
+  .btn { padding: .5rem .75rem; font-size: .95rem; }
+}
+
+// -------------------- Compact utilities --------------------
+.small-muted { color: #64748b; font-size: .85rem; }
+.centered { margin-left:auto; margin-right:auto; text-align:center; }
+
+// -------------------- Specific component responsive tweaks --------------------
+/* role/user/permission cards - ensure checkbox sits inside */
+.role-item, .perm-item {
+  display: flex;
+  gap: .75rem;
+  align-items: flex-start;
+  padding: .6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(15,23,42,0.04);
+  background: #fff;
+}
+.role-item .form-check-input, .perm-item .form-check-input {
+  transform: none;
+  margin-top: 4px;
+}
+
+/* product item card adjustments */
+.products-table td, .products-table th { white-space: nowrap; }
+@media (max-width: 900px) {
+  .products-table td, .products-table th { white-space: normal; }
+}
+
+/* auth page and cards */
+.auth-page { min-height: calc(100vh - 56px); display:flex; align-items:center; justify-content:center; padding:2rem; }
+@media (max-width: $bp-sm) { .auth-page { padding:1.25rem; } .auth-card { padding: 18px; } }
+
+// -------------------- Footer --------------------
+.app-footer {
+  background: transparent;
+  color: #64748b;
+  font-size: .9rem;
+  padding: .75rem 0;
+  border-top: 1px solid rgba(0,0,0,0.02);
+}
+
+// -------------------- Accessibility --------------------
+:focus { outline: none; }
+a:focus, button:focus, input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 4px rgba($brand-primary, 0.08);
+}
+
+// -------------------- Print rules --------------------
+@media print {
+  .sidebar, .topbar, .overlay, .btn, .actions { display: none !important; }
+  .content { padding: 0 !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+}
+
+/* end of file */

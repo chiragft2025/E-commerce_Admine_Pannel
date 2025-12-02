@@ -9,16 +9,26 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { HasPermissionDirective } from '../../directives/has-permission.directive'; // adjust path as needed
 
-
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule,HasPermissionDirective],
+  imports: [CommonModule, RouterModule, FormsModule, HasPermissionDirective],
   templateUrl: './user-list.html',
   styleUrls: ['./user-list.scss']
 })
 export class UserList implements OnInit, OnDestroy {
+  // full dataset returned from API (kept for client-side pagination)
+  private allUsers: User[] = [];
+
+  // currently displayed page slice (your template iterates this.users)
   users: User[] = [];
+
+  // pagination
+  page = 1;
+  pageSize = 9; // 9 items per page as requested
+  total = 0;
+
+  // UI & search
   loading = false;
   search = '';
 
@@ -53,20 +63,42 @@ export class UserList implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  load(term?: string) {
+  /**
+   * Load users from API and initialize pagination.
+   * If pageArg is provided, loads that page after fetch.
+   */
+  load(term?: string, pageArg?: number) {
     const q = (typeof term === 'string') ? term : this.search;
     this.loading = true;
-    this.us.list(q).subscribe({
-      next: (res:any) => {
-        // If API returns paged { items: [...] } support both shapes
-        this.users = Array.isArray(res) ? res : (res?.items ?? []);
+
+    this.us.list(q).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        // support both shapes: array or paged { items: [...] }
+        const returned = Array.isArray(res) ? res : (res?.items ?? []);
+        this.allUsers = returned as User[];
+        this.total = this.allUsers.length;
+        // if caller provided pageArg use it; otherwise keep current page (or reset to 1 if search changed)
+        if (pageArg != null) this.page = pageArg;
+        // ensure page is within bounds
+        this.page = Math.max(1, Math.min(this.page, this.pageCount));
+        this.applyPagination();
         this.loading = false;
       },
-      error: (err) => { console.error('USER LIST ERROR', err); this.loading = false; }
+      error: (err) => {
+        console.error('USER LIST ERROR', err);
+        this.allUsers = [];
+        this.users = [];
+        this.total = 0;
+        this.loading = false;
+      }
     });
   }
 
-  onEnter() { this.load(this.search); }
+  onEnter() {
+    // when user presses Enter, reset to page 1 and reload
+    this.page = 1;
+    this.load(this.search, 1);
+  }
 
   // add only allowed if user has permission
   add() {
@@ -95,7 +127,11 @@ export class UserList implements OnInit, OnDestroy {
 
     if (!confirm(`Delete user ${u.userName}?`)) return;
     this.us.delete(u.id!).subscribe({
-      next: () => this.load(),
+      next: () => {
+        // after delete, reload current page (but ensure page still valid)
+        // simpler: re-fetch; alternative: remove from allUsers and re-apply
+        this.load(this.search, this.page);
+      },
       error: (e) => console.error(e)
     });
   }
@@ -127,9 +163,46 @@ export class UserList implements OnInit, OnDestroy {
       return (u.roles as any[]).map(r => r.name).join(', ');
     }
     // If roleIds only (no names), show placeholder
-    if (u.roleIds && u.roleIds.length) {
-      return u.roleIds.join(', ');
+    if ((u as any).roleIds && (u as any).roleIds.length) {
+      return (u as any).roleIds.join(', ');
     }
     return '—';
+  }
+
+  /* --------------------- Pagination helpers --------------------- */
+
+  // apply pagination: slice allUsers into users for current page
+  private applyPagination() {
+    const start = (this.page - 1) * this.pageSize;
+    this.users = this.allUsers.slice(start, start + this.pageSize);
+  }
+
+  // computed page count
+  get pageCount(): number {
+    return Math.max(1, Math.ceil(this.total / this.pageSize));
+  }
+
+  // navigate to previous page
+  prev() {
+    if (this.page > 1) {
+      this.page--;
+      this.applyPagination();
+    }
+  }
+
+  // navigate to next page
+  next() {
+    if (this.page < this.pageCount) {
+      this.page++;
+      this.applyPagination();
+    }
+  }
+
+  // go to specific page (1-based)
+  goTo(p: number) {
+    if (p < 1) p = 1;
+    if (p > this.pageCount) p = this.pageCount;
+    this.page = p;
+    this.applyPagination();
   }
 }

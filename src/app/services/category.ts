@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
-import { Category } from '../models/categories.model';
+import { Category, CategoryPagedResponse } from '../models/categories.model';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
@@ -10,23 +10,36 @@ export class CategoryService {
 
   constructor(private http: HttpClient) {}
 
-  list(): Observable<Category[]> {
-    return this.http.get<Category[]>(this.base);
+  /**
+   * Get paginated list of categories
+   * ?page=1&pageSize=10&q=term
+   */
+   list(page = 1, pageSize = 10, q = ''): Observable<CategoryPagedResponse | Category[]> {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+
+    const term = (q ?? '').toString().trim();
+    if (term.length > 0) {
+      params = params.set('search', term).set('q', term);
+    }
+
+    return this.http.get<any>(this.base, { params });
   }
 
   get(id: number): Observable<Category> {
     return this.http.get<Category>(`${this.base}/${id}`);
   }
 
-  create(model: Category) {
+  create(model: Partial<Category>): Observable<Category> {
     return this.http.post<Category>(this.base, model);
   }
 
-  update(id: number, model: Category) {
+  update(id: number, model: Partial<Category>): Observable<Category> {
     return this.http.put<Category>(`${this.base}/${id}`, model);
   }
 
-  delete(id: number) {
-    return this.http.delete(`${this.base}/${id}`);
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}`);
   }
 }

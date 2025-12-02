@@ -12,8 +12,15 @@ export class OrderService {
 
   constructor(private http: HttpClient) {}
 
-  list(page = 1, pageSize = 20): Observable<Paged<OrderSummary>> {
-    let params = new HttpParams().set('page', String(page)).set('pageSize', String(pageSize));
+  list(page = 1, pageSize = 20, search?: string): Observable<Paged<OrderSummary>> {
+    let params = new HttpParams()
+      .set('page', String(page))
+      .set('pageSize', String(pageSize));
+
+    if (search && search.trim().length > 0) {
+      params = params.set('search', search.trim());
+    }
+
     return this.http.get<Paged<OrderSummary>>(this.base, { params });
   }
 

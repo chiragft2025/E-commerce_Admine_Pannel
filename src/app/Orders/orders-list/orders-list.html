@@ -2,15 +2,26 @@
   <div class="page-header d-flex align-items-center justify-content-between mb-3">
     <h3 class="mb-0">Orders</h3>
 
-    <div class="actions">
-      <button
-        *appHasPermission="'Order.Manage'"
-        class="btn btn-sm btn-primary"
-        (click)="create()"
-        aria-label="New Order"
-      >
-        <i class="bi bi-plus-lg me-1"></i> New Order
-      </button>
+    <div class="d-flex align-items-center gap-2">
+      <input
+        type="search"
+        class="form-control form-control-sm"
+        placeholder="Search by order ID, status or customer..."
+        [(ngModel)]="searchText"
+        (ngModelChange)="onSearchChange($event)"
+        aria-label="Search orders"
+      />
+
+      <div class="actions">
+        <button
+          *appHasPermission="'Order.Manage'"
+          class="btn btn-sm btn-primary"
+          (click)="create()"
+          aria-label="New Order"
+        >
+          <i class="bi bi-plus-lg me-1"></i> New Order
+        </button>
+      </div>
     </div>
   </div>
 

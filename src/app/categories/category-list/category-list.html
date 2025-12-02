@@ -2,26 +2,42 @@
   <div class="page-header d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Categories</h2>
 
-    <div class="actions">
+    <div class="actions d-flex align-items-center gap-2">
+      <!-- optional quick search -->
+      <input
+        class="form-control form-control-sm"
+        placeholder="Search..."
+        [(ngModel)]="q"
+        (keyup.enter)="onSearch()"
+        aria-label="Search categories"
+      />
+
+      <button class="btn btn-sm btn-outline-secondary" (click)="onSearch()" [disabled]="loading">
+        <i class="bi bi-search"></i>
+      </button>
+
       <button
         *appHasPermission="'Category.Manage'"
-        class="btn btn-primary"
+        class="btn btn-sm btn-primary"
         (click)="add()"
         aria-label="Add Category"
       >
-        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
-        Add Category
+        <i class="bi bi-plus-lg me-1"></i> Add Category
       </button>
     </div>
   </div>
 
-  <div *ngIf="categories?.length; else empty" class="table-responsive">
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+  </div>
+
+  <div *ngIf="!loading && categories?.length; else empty" class="table-responsive">
     <table class="table table-hover align-middle category-table mb-0">
       <thead class="table-light">
         <tr>
           <th scope="col">Title</th>
           <th scope="col">Description</th>
-          <th scope="col" class="text-end"  *appHasPermission="'Category.Manage'" >Actions</th>
+          <th scope="col" class="text-end" *appHasPermission="'Category.Manage'">Actions</th>
         </tr>
       </thead>
 
@@ -29,23 +45,13 @@
         <tr *ngFor="let c of categories">
           <td data-label="Title">{{ c.title }}</td>
           <td data-label="Description">{{ c.description }}</td>
-          <td data-label="Actions" class="text-end"  *appHasPermission="'Category.Manage'">
+          <td data-label="Actions" class="text-end" *appHasPermission="'Category.Manage'">
             <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
-              <button
-                class="btn btn-outline-primary"
-                (click)="edit(c)"
-                title="Edit"
-                aria-label="Edit category"
-              >
+              <button class="btn btn-outline-primary" (click)="edit(c)" title="Edit" aria-label="Edit category">
                 <i class="bi bi-pencil"></i>
               </button>
 
-              <button
-                class="btn btn-outline-danger"
-                (click)="remove(c)"
-                title="Delete"
-                aria-label="Delete category"
-              >
+              <button class="btn btn-outline-danger" (click)="remove(c)" title="Delete" aria-label="Delete category">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
@@ -60,4 +66,28 @@
       No categories found.
     </div>
   </ng-template>
+
+  <!-- Pagination -->
+  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Page navigation">
+      <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
+
+      <ng-container *ngFor="let p of pages">
+        <button
+          class="btn"
+          [ngClass]="p === page ? 'btn-primary' : 'btn-outline-secondary'"
+          (click)="goToPage(p)"
+          [attr.aria-current]="p === page ? 'page' : null"
+        >
+          {{ p }}
+        </button>
+      </ng-container>
+
+      <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === totalPages">Next</button>
+    </div>
+
+    <div class="pagination-info text-muted small">
+      Page {{ page }} of {{ totalPages }} — {{ total }} items
+    </div>
+  </div>
 </div>
