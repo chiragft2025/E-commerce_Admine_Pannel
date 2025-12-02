@@ -1,0 +1,112 @@
+/* main-layout.component.scss */
+
+/* Theme tokens (edit to match your theme or import from global) */
+$brand-primary: #0ea5e9;
+$body-bg: #f3f7fb;
+$body-color: #0f172a;
+$card-radius: 12px;
+$card-border: rgba(15,23,42,0.04);
+$card-shadow: 0 8px 30px rgba(16,24,40,0.06);
+
+/* Shell */
+.app-shell {
+  min-height: 100vh;
+  background: $body-bg;
+  color: $body-color;
+}
+
+/* Sidebar (md+ persistent) */
+.sidebar {
+  width: 240px;
+  min-width: 220px;
+  max-width: 260px;
+  background: #fff;
+  border-right: 1px solid rgba(0,0,0,0.04);
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+
+  .brand {
+    height: 64px;
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+  }
+
+  .nav-link {
+    color: #334155;
+    border-radius: 8px;
+    &.active {
+      color: $brand-primary;
+      background: rgba($brand-primary, 0.06);
+      font-weight: 600;
+    }
+    &:hover {
+      color: $brand-primary;
+      background: rgba($brand-primary, 0.03);
+    }
+  }
+
+  .sidebar-footer {
+    background: transparent;
+  }
+}
+
+/* Offcanvas override so it appears full height on small screens */
+.offcanvas-start.show {
+  visibility: visible !important;
+  transform: translateX(0) !important;
+}
+
+/* Topbar */
+.topbar {
+  height: 64px;
+  .topbar-title {
+    font-weight: 700;
+    color: $body-color;
+  }
+}
+
+/* Main content area */
+.main {
+  background: transparent;
+}
+
+/* Content container adjustments */
+.content {
+  min-height: calc(100vh - 64px - 56px); /* subtract header & footer */
+}
+
+/* Footer */
+.app-footer {
+  background: transparent;
+  color: #64748b;
+  font-size: .9rem;
+}
+
+/* Mobile overlay when using custom toggles */
+.app-shell[data-sidebar-open="true"] .overlay {
+  display: block;
+}
+
+/* small helper for icon buttons */
+.icon-btn {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+  .sidebar {
+    display: none; /* hide persistent sidebar on mobile */
+  }
+  .main {
+    padding-top: 0;
+  }
+}
+
+/* keep layout tidy when sidebar is hidden (useful if you toggle class on md too) */
+.app-shell.sidebar-open .sidebar {
+  transform: translateX(0);
+}

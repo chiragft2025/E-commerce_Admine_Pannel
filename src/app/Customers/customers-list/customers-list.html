@@ -1,42 +1,107 @@
-<div class="page-header">
-  <h3>Customers</h3>
+<div class="container py-3">
+  <div class="page-header d-flex align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">Customers</h3>
 
-  <div class="actions">
-    <input placeholder="Search by name or email..." [(ngModel)]="q" (keyup.enter)="onSearch()" />
-    <button (click)="onSearch()">Search</button>
-    <button class="add-btn" (click)="add()">New Customer</button>
+    <div class="actions d-flex align-items-center gap-2">
+      <input
+        class="form-control form-control-sm"
+        placeholder="Search by name or email..."
+        [(ngModel)]="q"
+        (keyup.enter)="onSearch()"
+        aria-label="Search customers"
+      />
+
+      <button class="btn btn-sm btn-outline-secondary" (click)="onSearch()">
+        <i class="bi bi-search"></i>
+      </button>
+
+      <button
+        *appHasPermission="'Customer.Manage'"
+        class="btn btn-sm btn-primary"
+        (click)="add()"
+        aria-label="New Customer"
+      >
+        <i class="bi bi-plus-lg me-1"></i> New Customer
+      </button>
+    </div>
   </div>
-</div>
 
-<div *ngIf="loading">Loading…</div>
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <div class="visually-hidden">Loading…</div>
+  </div>
 
-<div class="table-wrapper">
-  <table class="customers-table" *ngIf="!loading && customers?.length">
-    <thead>
-      <tr><th>Name</th><th>Email</th><th>Phone</th><th>Address</th><th></th></tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let c of customers">
-        <td>{{ c.fullName }}</td>
-        <td>{{ c.email }}</td>
-        <td>{{ c.phone }}</td>
-        <td>{{ c.address }}</td>
-        <td class="actions-col">
-          <button (click)="view(c)">View</button>
-          <button (click)="edit(c)">Edit</button>
-          <button (click)="remove(c)">Delete</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <div *ngIf="!loading && customers?.length; else empty" class="table-responsive">
+    <table class="table table-hover align-middle customers-table mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th class="text-end" *appHasPermission="'Customer.Manage'" >Actions</th>
+        </tr>
+      </thead>
 
-<div *ngIf="!loading && (!customers || customers.length === 0)">No customers found.</div>
+      <tbody>
+        <tr *ngFor="let c of customers">
+          <td data-label="Name">{{ c.fullName }}</td>
+          <td data-label="Email">{{ c.email }}</td>
+          <td data-label="Phone">{{ c.phone }}</td>
+          <td data-label="Address">{{ c.address }}</td>
+          <td class="text-end" data-label="Actions" *appHasPermission="'Customer.Manage'">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Customer actions">
+              <button
+                class="btn btn-outline-primary"
+                (click)="edit(c)"
+                title="Edit"
+                aria-label="Edit customer"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
 
-<!-- paging -->
-<div class="pagination" *ngIf="total > pageSize">
-  <button (click)="goToPage(page-1)" [disabled]="page===1">Prev</button>
-  <button *ngFor="let p of [].constructor(pageCount); let i = index" (click)="goToPage(i+1)" [class.active]="i+1===page">{{ i+1 }}</button>
-  <button (click)="goToPage(page+1)" [disabled]="page===pageCount">Next</button>
-  <div class="pagination-info">Page {{page}} of {{pageCount}} — {{total}} items</div>
+              <button
+                class="btn btn-outline-danger"
+                (click)="remove(c)"
+                title="Delete"
+                aria-label="Delete customer"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #empty>
+    <div class="no-customers-found card p-3 text-center text-muted mt-3">
+      No customers found.
+    </div>
+  </ng-template>
+
+  <!-- Pagination -->
+  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Page navigation">
+      <button class="btn btn-outline-secondary" (click)="goToPage(page-1)" [disabled]="page===1">Prev</button>
+
+      <ng-container *ngFor="let p of [].constructor(pageCount); let i = index">
+        <button
+          class="btn"
+          [ngClass]="i+1 === page ? 'btn-primary' : 'btn-outline-secondary'"
+          (click)="goToPage(i+1)"
+          [attr.aria-current]="i+1 === page ? 'page' : null"
+        >
+          {{ i+1 }}
+        </button>
+      </ng-container>
+
+      <button class="btn btn-outline-secondary" (click)="goToPage(page+1)" [disabled]="page===pageCount">Next</button>
+    </div>
+
+    <div class="pagination-info text-muted small">
+      Page {{ page }} of {{ pageCount }} — {{ total }} items
+    </div>
+  </div>
 </div>

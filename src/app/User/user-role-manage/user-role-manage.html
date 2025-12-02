@@ -1,0 +1,69 @@
+<div class="container py-3">
+  <div class="card role-manage-card p-3 p-md-4">
+
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-3 gap-3">
+      <div>
+        <h2 class="h5 mb-1">Manage Roles</h2>
+        <div class="text-muted small">
+          <ng-container *ngIf="!loading && user; else loadingOrMissing">
+            <strong>{{ user?.userName }}</strong>
+            <span class="muted"> — {{ user?.email }}</span>
+          </ng-container>
+          <ng-template #loadingOrMissing>
+            <span *ngIf="loading">Loading…</span>
+            <span *ngIf="!loading && error" class="text-danger">{{ error }}</span>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="text-md-end">
+        <div class="text-muted small">Manage roles for user</div>
+      </div>
+    </div>
+
+    <main *ngIf="!loading && user">
+      <div *ngIf="!canManageUsers" class="alert alert-warning">
+        You do not have permission to change roles for users.
+      </div>
+
+      <section class="roles-block mb-3">
+        <h6 class="mb-3">Available Roles</h6>
+
+        <div *ngIf="availableRoles?.length; else noRoles" class="row g-2 roles-list">
+          <div *ngFor="let r of availableRoles" class="col-12 col-md-6 col-lg-4">
+            <div class="form-check role-item p-2 border rounded h-100 d-flex align-items-start gap-2">
+              <input
+                class="form-check-input mt-1"
+                type="checkbox"
+                [checked]="isSelected(r.id)"
+                (change)="toggleRoleSelection(r.id, $any($event.target).checked)"
+                [disabled]="!canManageUsers || saving"
+                id="role-{{ r.id }}"
+              />
+              <label class="form-check-label ms-2" [for]="'role-' + r.id">
+                <div class="fw-semibold">{{ r.name }}</div>
+                <div class="text-muted small" *ngIf="r.description">{{ r.description }}</div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noRoles>
+          <p class="text-muted">No roles available.</p>
+        </ng-template>
+      </section>
+
+      <div class="d-flex gap-2 justify-content-end">
+        <button class="btn btn-primary" (click)="submitRoles()" [disabled]="!canManageUsers || saving">
+          <span *ngIf="!saving">Save</span>
+          <span *ngIf="saving">Saving…</span>
+        </button>
+
+        <button class="btn btn-outline-secondary" (click)="cancel()" [disabled]="saving">Cancel</button>
+      </div>
+
+      <div *ngIf="error" class="alert alert-danger mt-3" role="alert">{{ error }}</div>
+    </main>
+  </div>
+</div>

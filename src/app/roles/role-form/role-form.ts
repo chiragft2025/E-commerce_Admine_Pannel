@@ -17,7 +17,7 @@ import { CreateRoleRequest, UpdateRoleRequest } from '../../models/role.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './role-form.html',
-  styleUrls: ['./role-form.css']
+  styleUrls: ['./role-form.scss']
 })
 export class RoleForm implements OnInit {
   form!: FormGroup;

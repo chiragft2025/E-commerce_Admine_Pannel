@@ -1,0 +1,85 @@
+/* categories.component.scss */
+
+/* Keep small theme tokens; adjust if you use global variables */
+$card-radius: 12px;
+$card-border: rgba(15, 23, 42, 0.04);
+$card-shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
+
+/* Page header */
+.page-header {
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+}
+
+/* Table card look (optional) */
+.category-table {
+  background: #fff;
+  border-radius: $card-radius;
+  border: 1px solid $card-border;
+  box-shadow: $card-shadow;
+  overflow: hidden;
+
+  thead th {
+    border-bottom: 1px solid #e9edf2;
+  }
+
+  tbody tr {
+    &:hover {
+      background: #fbfdff;
+    }
+  }
+
+  td, th {
+    vertical-align: middle;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Responsive stacked-table for small screens */
+/* This mirrors your previous behavior but scoped to this component */
+@media (max-width: 900px) {
+  .category-table thead { display: none; }
+
+  .category-table, tbody, tr, td {
+    display: block;
+    width: 100%;
+  }
+
+  .category-table tbody tr {
+    margin-bottom: 1rem;
+    border: 1px solid rgba(15,23,42,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .category-table tbody td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .category-table tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    width: calc(50% - 2rem);
+    text-align: left;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .category-table td[data-label="Actions"] {
+    text-align: left;
+    padding-left: 1rem;
+    border-bottom: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+  }
+}

@@ -1,45 +1,63 @@
-<div class="details-card" *ngIf="!loading && user">
-  <h2>User Details</h2>
-
-  <div class="row">
-    <label>User ID:</label>
-    <p>{{ user.id }}</p>
+<div class="container py-3">
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <div class="visually-hidden">Loading…</div>
   </div>
 
-  <div class="row">
-    <label>Username:</label>
-    <p>{{ user.userName }}</p>
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="alert alert-danger">
+    {{ error }}
   </div>
 
-  <div class="row">
-    <label>Email:</label>
-    <p>{{ user.email }}</p>
-  </div>
+  <!-- Details card -->
+  <div *ngIf="!loading && user" class="details-card card p-3 p-md-4">
+    <div class="d-flex align-items-start justify-content-between mb-3 gap-3">
+      <div>
+        <h2 class="h5 mb-1">User Details</h2>
+        <div class="text-muted small">Information about the selected user</div>
+      </div>
 
-  <div class="row">
-    <label>Status:</label>
-    <p>
-      <span class="status" [class.active]="user.isActive" [class.inactive]="!user.isActive">
-        {{ user.isActive ? 'Active' : 'Inactive' }}
-      </span>
-    </p>
-  </div>
+      <div class="text-end">
+        <div class="mb-1">Status</div>
+        <span
+          class="badge status-badge"
+          [ngClass]="user.isActive ? 'bg-success' : 'bg-secondary'"
+          aria-label="User status"
+        >
+          {{ user.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+    </div>
 
-  <!-- Roles -->
-  <div class="row">
-    <label>Roles:</label>
-    <p>
-      <span class="badge" *ngFor="let r of user.roles">{{ r.name || r }}</span>
-    </p>
-  </div>
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-md-6">
+        <div class="text-muted small">User ID</div>
+        <div class="fw-semibold">{{ user.id }}</div>
+      </div>
 
-  <div class="actions">
-    <button routerLink="/">Back</button>
+      <div class="col-12 col-md-6">
+        <div class="text-muted small">Username</div>
+        <div class="fw-semibold">{{ user.userName }}</div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="text-muted small">Email</div>
+        <div>{{ user.email }}</div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="text-muted small">Roles</div>
+        <div>
+          <ng-container *ngFor="let r of user.roles">
+            <span class="badge bg-light text-dark border me-1 mb-1">{{ r.name || r }}</span>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end">
+      <button class="btn btn-outline-secondary" routerLink="/">Back</button>
+    </div>
   </div>
 </div>
-
-<!-- LOADING -->
-<div class="loading" *ngIf="loading">Loading...</div>
-
-<!-- ERROR -->
-<div class="error" *ngIf="error">{{ error }}</div>

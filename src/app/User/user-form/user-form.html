@@ -1,39 +1,73 @@
-<div class="form-card">
-  <h2>{{ isEdit ? 'Edit user' : 'New user' }}</h2>
+<div class="form-card card shadow-sm p-4">
 
-  <form [formGroup]="form" (ngSubmit)="save()">
-    <label>Username</label>
-    <input formControlName="userName" />
-    <small style="color: red;" *ngIf="form.get('userName')?.touched && form.get('userName')?.invalid">Username is requried</small>
+  <h2 class="mb-4">{{ isEdit ? 'Edit user' : 'New user' }}</h2>
 
-    <label>Email</label>
-    <input formControlName="email" type="email" />
-    <small style="color: red;" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">Valid email required</small>
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
 
-    <label>Password</label>
-    <input formControlName="password" type="password" />
-    <small style="color: red;" *ngIf="!isEdit && form.get('password')?.touched && form.get('password')?.invalid">Min 6 chars</small>
-    <small style="color: green;" *ngIf="isEdit">Leave empty to keep existing password</small>
+    <div class="row g-3">
+      <!-- Username -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-control" formControlName="userName" />
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('userName')?.touched && form.get('userName')?.invalid">
+          Username is required
+        </div>
+      </div>
 
-    <label *ngIf="!isEdit">Roles</label>
+      <!-- Email -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" formControlName="email" />
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+          Valid email required
+        </div>
+      </div>
 
-<select formControlName="roleIds" multiple size="6"  *ngIf="!isEdit" >
-  <option *ngFor="let r of roles" [ngValue]="r.id">{{ r.name }}</option>
-</select>
+      <!-- Password -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" formControlName="password" />
+        <div  class="text-danger small mt-1"
+             *ngIf="!isEdit && form.get('password')?.touched && form.get('password')?.invalid">
+          Min 6 chars
+        </div>
+        <div *ngIf="isEdit" class="text-success small mt-1">
+          Leave empty to keep existing password
+        </div>
+      </div>
 
-<small *ngIf="roles.length === 0">No roles found.</small>
+      <!-- Roles (only when creating) -->
+      <div class="col-12 col-md-6" *ngIf="!isEdit">
+        <label class="form-label">Roles</label>
+        <select class="form-select" formControlName="roleIds" multiple size="6">
+          <option *ngFor="let r of roles" [ngValue]="r.id">{{ r.name }}</option>
+        </select>
 
-    <label>
-      <input type="checkbox" formControlName="isActive" /> Active
-    </label>
+        <div class="text-muted small mt-1" *ngIf="roles.length === 0">No roles found.</div>
+      </div>
 
-    <div *ngIf="errorList?.length" class="error" aria-live="polite">
-      <div *ngFor="let m of errorList; let i = index">{{ i+1 }}. {{ m }}</div>
+      <!-- Active -->
+      <div class="col-12">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive" />
+          <label class="form-check-label" for="isActive">Active</label>
+        </div>
+      </div>
     </div>
 
-    <div class="actions">
-      <button type="submit" [disabled]="saving">{{ isEdit ? 'Save' : 'Create' }}</button>
-      <button type="button" (click)="cancel()">Cancel</button>
+    <!-- Error list -->
+    <div *ngIf="errorList?.length" class="alert alert-danger mt-3" aria-live="polite">
+      <div *ngFor="let m of errorList; let i = index">{{ i + 1 }}. {{ m }}</div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button type="submit" class="btn btn-primary" [disabled]="saving">
+        {{ isEdit ? 'Save' : 'Create' }}
+      </button>
+      <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
     </div>
   </form>
 </div>

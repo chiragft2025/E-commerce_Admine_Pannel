@@ -27,5 +27,6 @@ export interface UpdateUserRequest {
   email?: string;
   password?: string; // optional — backend should accept empty as 'no-change'
   isActive?: boolean;
+  roles?: Role[];  
   roleIds?: number[];
 }

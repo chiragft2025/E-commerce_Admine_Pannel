@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Sidebar } from './sidebar';
+import { UserRoleManage } from './user-role-manage';
 
-describe('Sidebar', () => {
-  let component: Sidebar;
-  let fixture: ComponentFixture<Sidebar>;
+describe('UserRoleManage', () => {
+  let component: UserRoleManage;
+  let fixture: ComponentFixture<UserRoleManage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Sidebar]
+      imports: [UserRoleManage]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Sidebar);
+    fixture = TestBed.createComponent(UserRoleManage);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

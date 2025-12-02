@@ -1,21 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { OrderService } from '../../services/order.service';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-order-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,HasPermissionDirective],
   templateUrl: './orders-details.html',
-  styleUrls: ['./orders-details.css']
+  styleUrls: ['./orders-details.scss']
 })
 export class OrderDetail implements OnInit {
   id?: number;
   order: any = null;
   loading = false;
 
-  constructor(private route: ActivatedRoute, private os: OrderService) {}
+  constructor(private route: ActivatedRoute, private os: OrderService ,private router:Router) {}
 
   ngOnInit(): void {
     const idStr = this.route.snapshot.paramMap.get('id');
@@ -32,11 +33,14 @@ export class OrderDetail implements OnInit {
     });
   }
 
+  back() { this.router.navigateByUrl('/orders'); }
+
   cancel() {
     if (!confirm('Cancel this order?')) return;
     this.os.cancel(this.id!).subscribe({
       next: () => this.load(),
       error: e => console.error(e)
     });
+    this.router.navigateByUrl('/orders');
   }
 }

@@ -1,0 +1,30 @@
+/* customer-form.component.scss */
+
+.form-card {
+  max-width: 720px;
+  margin: 20px auto;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.04);
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+}
+
+.form-label {
+  font-weight: 600;
+  color: #334155;
+}
+
+.text-danger.small {
+  font-size: 0.85rem;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* Mobile tweaks */
+@media (max-width: 576px) {
+  .form-card { padding: 1.25rem !important; }
+  .d-flex.justify-content-end { flex-direction: column-reverse; gap: .5rem; }
+}

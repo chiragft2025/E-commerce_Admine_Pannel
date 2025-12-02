@@ -1,42 +1,93 @@
-<div class="page-header">
-  <h2>Users</h2>
-  <div class="actions">
-    <input
-      placeholder="Search by name or email..."
-      [(ngModel)]="search"
-      (keyup.enter)="onEnter()"
-    />
-    <button (click)="load(search)">Search</button>
-    <button (click)="add()">Add User</button>
+<div class="container py-3">
+  <div class="page-header d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Users</h2>
+
+    <div class="actions d-flex align-items-center gap-2">
+      <input
+        class="form-control form-control-sm"
+        placeholder="Search by name or email..."
+        [(ngModel)]="search"
+        (keyup.enter)="onEnter()"
+        aria-label="Search users"
+      />
+
+      <button class="btn btn-sm btn-outline-secondary" (click)="load(search)" aria-label="Search">
+        <i class="bi bi-search"></i>
+      </button>
+
+      <button
+        *appHasPermission="'User.Manage'"
+        class="btn btn-sm btn-primary"
+        (click)="add()"
+        aria-label="Add user"
+      >
+        <i class="bi bi-plus-lg me-1"></i> Add User
+      </button>
+    </div>
   </div>
+
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <div class="visually-hidden">Loading…</div>
+  </div>
+
+  <div *ngIf="!loading && users?.length; else empty" class="table-responsive">
+    <table class="table table-hover align-middle users-table mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th class="text-center">Active</th>
+          <th>Roles</th>
+          <th class="text-end" *appHasPermission="'User.Manage'">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let u of users">
+          <td data-label="Username">{{ u.userName }}</td>
+          <td data-label="Email">{{ u.email }}</td>
+          <td data-label="Active" class="text-center">{{ u.isActive ? 'Yes' : 'No' }}</td>
+          <td data-label="Roles">{{ displayRoles(u) }}</td>
+
+          <td class="text-end" data-label="Actions" *appHasPermission="'User.Manage'">
+            <div class="btn-group btn-group-sm" role="group" aria-label="User actions" >
+              <button
+                class="btn btn-outline-primary"
+                (click)="edit(u)"
+                title="Edit"
+                aria-label="Edit user"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+
+              <button
+                class="btn btn-outline-danger"
+                (click)="remove(u)"
+                title="Delete"
+                aria-label="Delete user"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+
+              <a
+                class="btn btn-outline-secondary"
+                [routerLink]="['/users', u.id, 'roles']"
+                title="Change roles"
+                aria-label="Change roles"
+              >
+                <i class="bi bi-shield-lock"></i>
+              </a>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #empty>
+    <div class="no-users-found card p-3 text-center text-muted mt-3">
+      No users found.
+    </div>
+  </ng-template>
 </div>
-
-<div *ngIf="loading">Loading…</div>
-
-<table *ngIf="!loading && users.length" class="users-table">
-  <thead>
-    <tr>
-      <th>Username</th>
-      <th>Email</th>
-      <th>Active</th>
-      <th>Roles</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let u of users">
-      <td>{{ u.userName }}</td>
-      <td>{{ u.email }}</td>
-      <td>{{ u.isActive ? 'Yes' : 'No' }}</td>
-      <td>
-        {{ displayRoles(u) }}
-      </td>
-      <td class="actions-col">
-        <button (click)="edit(u)">Edit</button>
-        <button (click)="remove(u)">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<div *ngIf="!loading && (!users || users.length === 0)">No users found.</div>

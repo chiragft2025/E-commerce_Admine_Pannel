@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { CategoryService } from '../../services/category';
 import { Category } from '../../models/categories.model';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-category-list',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule,HasPermissionDirective],
   templateUrl: './category-list.html',
-  styleUrls: ['./category-list.css']
+  styleUrls: ['./category-list.scss']
 })
 export class CategoryList implements OnInit {
   categories: Category[] = [];

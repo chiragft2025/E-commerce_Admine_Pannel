@@ -4,13 +4,14 @@ import { Router, RouterModule } from '@angular/router';
 import { ProductService, Paged } from '../../services/product';
 import { Product } from '../../models/product.model';
 import { FormsModule } from '@angular/forms';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule,HasPermissionDirective],
   templateUrl: './products-list.html',
-  styleUrls: ['./products-list.css']
+  styleUrls: ['./products-list.scss']
 })
 export class ProductsList implements OnInit {
   products: Product[] = [];

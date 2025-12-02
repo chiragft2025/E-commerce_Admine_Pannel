@@ -1,65 +1,107 @@
-<div class="form-card">
-  <h2>{{ isEdit ? 'Edit Product' : 'Add Product' }}</h2>
+<div class="form-card card shadow-sm p-4">
 
-  <form [formGroup]="form" (ngSubmit)="save()">
-    <label>Name</label>
-    <input formControlName="name" />
-    <small *ngIf="form.get('name')?.touched && form.get('name')?.invalid" style="color: red">
-      * Name is Required
-    </small>
+  <h2 class="mb-4">{{ isEdit ? 'Edit Product' : 'Add Product' }}</h2>
 
-    <label>SKU</label>
-    <input formControlName="sku" />
-    <small *ngIf="form.get('sku')?.touched && form.get('sku')?.invalid" style="color: red">
-      * Sku is Required
-    </small>
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
 
-    <label>Description</label>
-    <textarea formControlName="description"></textarea>
+    <div class="row g-3">
+      <!-- Name -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-control" formControlName="name" />
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
+          * Name is required
+        </div>
+      </div>
 
-    <label>Price</label>
-    <input type="number" formControlName="price" min="0" />
-    <small *ngIf="form.get('price')?.touched && form.get('price')?.invalid" style="color: red">
-      Must be 0 or more
-    </small>
+      <!-- SKU -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">SKU</label>
+        <input type="text" class="form-control" formControlName="sku" />
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('sku')?.touched && form.get('sku')?.invalid">
+          * SKU is required
+        </div>
+      </div>
 
-    <label>Stock</label>
-    <input type="number" formControlName="stock" min="0" />
-    <small *ngIf="form.get('stock')?.touched && form.get('stock')?.invalid" style="color: red">
-      Must be more than 0
-    </small>
+      <!-- Description -->
+      <div class="col-12">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" formControlName="description" rows="3"></textarea>
+      </div>
 
-    <label>Active</label>
-    <input type="checkbox" formControlName="isActive" />
+      <!-- Price -->
+      <div class="col-12 col-md-4">
+        <label class="form-label">Price</label>
+        <input type="number" min="0" class="form-control" formControlName="price" />
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('price')?.touched && form.get('price')?.invalid">
+          Must be 0 or more
+        </div>
+      </div>
 
-    <!-- Category Dropdown -->
-    <label>Category</label>
-    <select formControlName="categoryId">
-      <option value="">-- Select Category --</option>
-      <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.title }}</option>
-    </select>
-    <small *ngIf="form.get('categoryId')?.touched && form.get('categoryId')?.invalid">
-      Required
-    </small>
+      <!-- Stock -->
+      <div class="col-12 col-md-4">
+        <label class="form-label">Stock</label>
+        <input type="number" min="0" class="form-control" formControlName="stock" />
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('stock')?.touched && form.get('stock')?.invalid">
+          Must be 0 or more
+        </div>
+      </div>
 
-    <!-- Tags -->
-    <label>Tags</label>
-    <div formArrayName="tags">
-      <div *ngFor="let tg of tagsArray.controls; let i = index" [formGroupName]="i" class="tag-row">
-        <input formControlName="name" placeholder="Tag name" />
-        <button type="button" (click)="removeTag(i)">X</button>
+      <!-- Active -->
+      <div class="col-12 col-md-4 d-flex align-items-center">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive" />
+          <label class="form-check-label" for="isActive">Active</label>
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">Category</label>
+        <select class="form-select" formControlName="categoryId">
+          <option value="">-- Select Category --</option>
+          <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.title }}</option>
+        </select>
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('categoryId')?.touched && form.get('categoryId')?.invalid">
+          Required
+        </div>
       </div>
     </div>
 
-    <button type="button" class="add-tag" (click)="addTag()">+ Add Tag</button>
+    <!-- Tags -->
+    <div class="mt-4">
+      <label class="form-label">Tags</label>
 
-    <div *ngIf="error" class="error">{{ error }}</div>
+      <div formArrayName="tags" class="d-flex flex-column gap-2">
+        <div *ngFor="let tg of tagsArray.controls; let i = index" [formGroupName]="i" class="d-flex gap-2 align-items-start tag-row">
+          <input type="text" class="form-control" formControlName="name" placeholder="Tag name" />
+          <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeTag(i)" aria-label="Remove tag">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
 
-    <div class="actions">
-      <button type="submit" [disabled]="saving">
+      <div class="mt-2">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="addTag()">
+          <i class="bi bi-plus-lg me-1"></i> Add Tag
+        </button>
+      </div>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="error" class="alert alert-danger mt-4">{{ error }}</div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button type="submit" class="btn btn-primary" [disabled]="saving">
         {{ isEdit ? 'Update' : 'Create' }}
       </button>
-      <button type="button" (click)="cancel()">Cancel</button>
+      <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
     </div>
   </form>
 </div>

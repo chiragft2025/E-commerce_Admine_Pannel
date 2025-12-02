@@ -1,40 +1,69 @@
-<div class="form-card">
-  <h2>{{ isEdit ? 'Edit Role' : 'New Role' }}</h2>
+<div class="form-card card shadow-sm p-4">
 
-  <form [formGroup]="form" (ngSubmit)="save()">
-    <label>Name</label>
-    <input formControlName="name" />
-    <small *ngIf="form.get('name')?.touched && form.get('name')?.invalid">Required</small>
+  <h2 class="mb-4">{{ isEdit ? 'Edit Role' : 'New Role' }}</h2>
 
-    <label>Description</label>
-    <textarea formControlName="description"></textarea>
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
 
-    <label>
-      <input type="checkbox" formControlName="isActive" /> Active
-    </label>
+    <!-- Name -->
+    <div class="mb-3">
+      <label class="form-label">Name</label>
+      <input type="text" class="form-control" formControlName="name" />
+      <div class="text-danger small mt-1" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
+        Required
+      </div>
+    </div>
 
-    <div class="permissions-block">
-      <h4>Permissions</h4>
-      <div *ngIf="permissions.length === 0">No permissions available.</div>
+    <!-- Description -->
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" rows="3" formControlName="description"></textarea>
+    </div>
 
-      <div class="permissions-grid">
-        <label *ngFor="let p of permissions" class="perm-item">
-          <input
-            type="checkbox"
-            [checked]="isChecked(p.id)"
-            (change)="togglePermission(p.id, $event.target.checked)"
-          />
-          <span class="perm-name">{{ p.name }}</span>
-          <div class="perm-desc" *ngIf="p.description">{{ p.description }}</div>
+    <!-- Active -->
+    <div class="form-check mb-3">
+      <input class="form-check-input" type="checkbox" id="isActive" formControlName="isActive" />
+      <label class="form-check-label" for="isActive">Active</label>
+    </div>
+
+    <!-- Permissions block -->
+    <div class="permissions-block mb-3">
+      <h5 class="mb-3">Permissions</h5>
+
+      <div *ngIf="permissions.length === 0" class="text-muted mb-2">
+        No permissions available.
+      </div>
+
+      <div class="permissions-grid row g-2">
+        <label *ngFor="let p of permissions" class="col-12 col-md-6 col-lg-4 perm-item">
+          <div class="d-flex align-items-start gap-2 p-2 border rounded h-100">
+            <div class="form-check me-2">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                [checked]="isChecked(p.id)"
+                (change)="togglePermission(p.id, $any($event.target).checked)"
+                id="perm-{{p.id}}"
+              />
+            </div>
+
+            <div class="flex-grow-1">
+              <label [for]="'perm-' + p.id" class="fw-semibold mb-0 d-block perm-name">{{ p.name }}</label>
+              <div class="text-muted small perm-desc" *ngIf="p.description">{{ p.description }}</div>
+            </div>
+          </div>
         </label>
       </div>
     </div>
 
-    <div *ngIf="error" class="error">{{ error }}</div>
+    <!-- Error -->
+    <div *ngIf="error" class="alert alert-danger mb-3">{{ error }}</div>
 
-    <div class="actions">
-      <button type="submit" [disabled]="saving">{{ isEdit ? 'Update' : 'Create' }}</button>
-      <button type="button" (click)="cancel()">Cancel</button>
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button type="submit" class="btn btn-primary" [disabled]="saving">
+        {{ isEdit ? 'Update' : 'Create' }}
+      </button>
+      <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
     </div>
   </form>
 </div>

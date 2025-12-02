@@ -9,7 +9,7 @@ import { CustomerService } from '../../services/customer.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './customers-form.html',
-  styleUrls: ['./customers-form.css']
+  styleUrls: ['./customers-form.scss']
 })
 export class CustomerForm implements OnInit {
 

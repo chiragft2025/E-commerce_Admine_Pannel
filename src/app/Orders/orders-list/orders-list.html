@@ -1,30 +1,70 @@
-<div class="page-header">
-  <h3>Orders</h3>
-  <div class="actions">
-    <button class="add-btn" (click)="create()">New Order</button>
+<div class="container py-3">
+  <div class="page-header d-flex align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">Orders</h3>
+
+    <div class="actions">
+      <button
+        *appHasPermission="'Order.Manage'"
+        class="btn btn-sm btn-primary"
+        (click)="create()"
+        aria-label="New Order"
+      >
+        <i class="bi bi-plus-lg me-1"></i> New Order
+      </button>
+    </div>
   </div>
-</div>
 
-<table class="products-table" *ngIf="!loading && orders.length">
-  <thead>
-    <tr><th>ID</th><th>Placed</th><th>Customer</th><th>Status</th><th>Total</th><th></th></tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let o of orders">
-      <td>{{o.id}}</td>
-      <td>{{o.placedAt | date:'short'}}</td>
-      <td>{{o.customer?.fullName}}</td>
-      <td>{{o.status}}</td>
-      <td>{{o.totalAmount | number:'1.2-2'}}</td>
-      <td><button (click)="view(o)">View</button></td>
-    </tr>
-  </tbody>
-</table>
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <div class="visually-hidden">Loading…</div>
+  </div>
 
-<div *ngIf="!loading && orders.length===0">No orders found.</div>
+  <div *ngIf="!loading && orders?.length; else empty" class="table-responsive">
+    <table class="table table-hover align-middle orders-table mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Placed</th>
+          <th>Customer</th>
+          <th>Status</th>
+          <th class="text-end">Total</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
 
-<div class="pagination" *ngIf="total > pageSize">
-  <button (click)="prev()" [disabled]="page===1">Prev</button>
-  <span>Page {{page}} of {{ pageCount }}</span>
-  <button (click)="next()" [disabled]="page===pageCount">Next</button>
+      <tbody>
+        <tr *ngFor="let o of orders">
+          <td data-label="ID">{{ o.id }}</td>
+          <td data-label="Placed">{{ o.placedAt | date: 'short' }}</td>
+          <td data-label="Customer">{{ o.customer?.fullName }}</td>
+          <td data-label="Status">{{ o.status }}</td>
+          <td data-label="Total" class="text-end">{{ o.totalAmount | number: '1.2-2' }}</td>
+          <td class="text-end" data-label="Actions">
+            <button class="btn btn-sm btn-outline-secondary" (click)="view(o)" aria-label="View order">
+              <i class="bi bi-eye"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #empty>
+    <div class="no-orders-found card p-3 text-center text-muted mt-3">
+      No orders found.
+    </div>
+  </ng-template>
+
+  <!-- Pagination -->
+  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Page navigation">
+      <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
+      <button class="btn btn-outline-secondary" disabled>Page {{ page }} of {{ pageCount }}</button>
+      <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === pageCount">Next</button>
+    </div>
+
+    <div class="pagination-info text-muted small">
+      Showing {{ orders?.length || 0 }} orders — total {{ total ?? 'N/A' }}
+    </div>
+  </div>
 </div>

@@ -1,19 +1,99 @@
-<div *ngIf="order">
-  <h3>Order #{{order.id}} - {{order.status}}</h3>
-  <div>Placed: {{order.placedAt | date:'short'}}</div>
-  <div>Customer: {{order.customer?.fullName}}</div>
-  <div>Shipping: {{order.shippingAddress || '—'}}</div>
+<div class="container py-3">
+  <div *ngIf="order" class="order-details-card card p-3 p-md-4">
 
-  <h4>Items</h4>
-  <ul>
-    <li *ngFor="let it of order.items">
-      {{it.product?.name || it.productId}} — qty: {{it.quantity}} — price: {{it.unitPrice | number:'1.2-2'}}
-    </li>
-  </ul>
+    <!-- Header: Order number + status badge -->
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-3 gap-3">
+      <div>
+        <h3 class="mb-1">Order #{{ order.id }}</h3>
+        <div class="text-muted small">Placed: {{ order.placedAt | date:'short' }}</div>
+      </div>
 
-  <div>Total: {{order.totalAmount | number:'1.2-2'}}</div>
+      <div class="text-md-end">
+        <div class="mb-1">Customer</div>
+        <div class="fw-semibold">{{ order.customer?.fullName || '—' }}</div>
+        <div class="mt-2">
+          <span
+            class="badge status-badge"
+            [ngClass]="{
+              'bg-warning text-dark': order.status === 'Pending',
+              'bg-primary': order.status === 'Processing',
+              'bg-success': order.status === 'Completed',
+              'bg-danger': order.status === 'Cancelled'
+            }"
+            aria-label="Order status"
+          >
+            {{ order.status }}
+          </span>
+        </div>
+      </div>
+    </div>
 
-  <div class="actions">
-    <button (click)="cancel()" [disabled]="order.status==='Cancelled'">Cancel Order</button>
+    <!-- Shipping / meta -->
+    <div class="row mb-3">
+      <div class="col-12 col-md-6">
+        <div class="text-muted small">Shipping</div>
+        <div>{{ order.shippingAddress || '—' }}</div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="text-muted small">Payment / Info</div>
+        <div>{{ order.paymentMethod || '—' }}</div>
+      </div>
+    </div>
+
+    <!-- Items (table for desktop, stacked on small screens) -->
+    <div class="table-responsive mb-3">
+      <table class="table align-middle order-items-table mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Product</th>
+            <th class="text-end">Unit price</th>
+            <th class="text-center">Qty</th>
+            <th class="text-end">Subtotal</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let it of order.items">
+            <td>
+              <div class="fw-semibold">{{ it.product?.name || it.productId }}</div>
+              <div class="text-muted small">{{ it.product?.sku || '' }}</div>
+            </td>
+
+            <td class="text-end">{{ it.unitPrice | number:'1.2-2' }}</td>
+            <td class="text-center">{{ it.quantity }}</td>
+            <td class="text-end">{{ (it.unitPrice * it.quantity) | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Total -->
+    <div class="d-flex justify-content-end align-items-center gap-3 mb-3">
+      <div class="text-muted small">Total:</div>
+      <div class="fs-5 fw-bold">{{ order.totalAmount | number:'1.2-2' }}</div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex flex-wrap gap-2 justify-content-end">
+      <button
+        *appHasPermission="'Order.Manage'"
+        class="btn btn-outline-danger"
+        (click)="cancel()"
+        [disabled]="order.status === 'Cancelled'"
+        aria-label="Cancel order"
+      >
+        Cancel Order
+      </button>
+
+      <button class="btn btn-secondary" (click)="back()" aria-label="Back to list">
+        Back
+      </button>
+    </div>
+  </div>
+
+  <!-- If no order -->
+  <div *ngIf="!order" class="card p-3 text-center text-muted">
+    No order selected.
   </div>
 </div>

@@ -1,28 +1,57 @@
-<div class="auth-card">
-  <h2>Login</h2>
+<!-- Bootstrap-based Login Page -->
+<div class="auth-page d-flex align-items-center justify-content-center">
+  <div class="auth-card shadow p-4 p-md-5">
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    <div>
-      <label for="username">Username</label>
-      <input id="username" formControlName="username" type="username" />
-      <div *ngIf="form.get('username')?.touched && form.get('username')?.invalid">
-        <small *ngIf="form.get('username')?.errors?.['required']" style="color: red;">username required</small>
+    <h1 class="text-center mb-4">Login</h1>
+
+    <form (ngSubmit)="submit()" [formGroup]="form" novalidate>
+
+      <!-- Username -->
+      <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input
+          id="username"
+          type="text"
+          class="form-control"
+          formControlName="username"
+          autocomplete="username"
+        />
+        <div
+          class="text-danger small mt-1"
+          *ngIf="form.controls['username'].touched && form.controls['username'].invalid"
+        >
+          Username is required
+        </div>
       </div>
-    </div>
 
-    <div>
-      <label for="password">Password</label>
-      <input id="password" formControlName="password" type="password" />
-      <div *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
-        <small *ngIf="form.get('password')?.errors?.['required']" style="color: red;">Password required</small>
-        <small *ngIf="form.get('password')?.errors?.['minlength']" style="color: red;">Min 6 chars</small>
+      <!-- Password -->
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input
+          id="password"
+          type="password"
+          class="form-control"
+          formControlName="password"
+          autocomplete="current-password"
+        />
+        <div
+          class="text-danger small mt-1"
+          *ngIf="form.controls['password'].touched && form.controls['password'].invalid"
+        >
+          Password is required
+        </div>
       </div>
-    </div>
 
-    <div *ngIf="error" class="error">{{ error }}</div>
-<br>
-    <button type="submit" >Login</button>
-  </form>
+      <!-- Login button -->
+      <div class="d-grid mt-3">
+        <button type="submit" class="btn btn-primary btn-lg">Login</button>
+      </div>
+    </form>
 
-  <p>Don't have an account? <a routerLink="/register">Register</a></p>
+    <p class="text-center mt-3 mb-0">
+      Don’t have an account?
+      <a routerLink="/register" class="text-primary fw-semibold">Register</a>
+    </p>
+
+  </div>
 </div>

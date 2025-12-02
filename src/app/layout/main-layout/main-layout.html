@@ -1,11 +1,94 @@
-<div class="layout">
-  <app-sidebar></app-sidebar>
+<!-- main-layout.component.html -->
+<div class="app-shell d-flex" [class.sidebar-open]="sidebarOpen" [attr.data-sidebar-open]="sidebarOpen">
+  <!-- Sidebar (persistent on md+, offcanvas on sm) -->
+  <!-- Offcanvas for small screens -->
+  <div class="d-md-none">
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel"
+         [class.show]="sidebarOpen" [attr.aria-hidden]="!sidebarOpen" (click)="toggleSidebar()">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mobileSidebarLabel">MyApp</h5>
+        <button type="button" class="btn-close text-reset" aria-label="Close" (click)="toggleSidebar()"></button>
+      </div>
+      <div class="offcanvas-body p-0">
+        <nav class="nav flex-column px-3 py-2" role="navigation" aria-label="Main menu">
+          <a routerLink="/home" routerLinkActive="active" class="nav-link">Dashboard</a>
+          <a routerLink="/categories" routerLinkActive="active" class="nav-link" *appHasPermission="'Category.View'">Categories</a>
+          <a routerLink="/products" routerLinkActive="active" class="nav-link" *appHasPermission="'Product.View'">Products</a>
+          <a routerLink="/customers" routerLinkActive="active" class="nav-link" *appHasPermission="'Customer.View'">Customers</a>
+          <a routerLink="/orders" routerLinkActive="active" class="nav-link" *appHasPermission="'Order.View'">Orders</a>
+          <a routerLink="/users" routerLinkActive="active" class="nav-link" *appHasPermission="'User.Manage'">Users</a>
+          <a routerLink="/roles" routerLinkActive="active" class="nav-link" *appHasPermission="'Role.Manage'">Roles</a>
+        </nav>
 
-  <div class="main-content">
-    <app-header></app-header>
-
-    <div class="page-area">
-      <router-outlet></router-outlet>
+        <div class="sidebar-footer p-3 border-top">
+          <button class="btn btn-outline-secondary w-100 mb-2" (click)="profile()" aria-label="Profile">
+            <i class="bi bi-person-circle me-2"></i> Profile
+          </button>
+          <button class="btn btn-outline-danger w-100" (click)="logout()" aria-label="Logout">
+            <i class="bi bi-lock-fill me-2"></i> Logout
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Persistent sidebar for md+ -->
+  <aside class="sidebar d-none d-md-flex flex-column" [attr.aria-hidden]="!sidebarOpen && 'false'">
+    <div class="brand p-3 border-bottom">
+      <a routerLink="/" class="brand-link d-flex align-items-center text-decoration-none">
+        <img src="assets/img/logo.png" alt="logo" height="28" class="me-2">
+        <span class="h6 mb-0">MyApp</span>
+      </a>
+    </div>
+
+    <nav class="nav flex-column p-3" role="navigation" aria-label="Main menu">
+      <a routerLink="/home" routerLinkActive="active" class="nav-link py-2">Dashboard</a>
+      <a routerLink="/categories" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Category.View'">Categories</a>
+      <a routerLink="/products" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Product.View'">Products</a>
+      <a routerLink="/customers" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Customer.View'">Customers</a>
+      <a routerLink="/orders" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Order.View'">Orders</a>
+      <a routerLink="/users" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'User.Manage'">Users</a>
+      <a routerLink="/roles" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Role.Manage'">Roles</a>
+    </nav>
+
+    <div class="mt-auto sidebar-footer p-3 border-top">
+      <button class="btn btn-light w-100 mb-2 d-flex align-items-center" (click)="profile()" aria-label="Profile">
+        <i class="bi bi-person-circle me-2"></i><span class="flex-grow-1 text-start">Profile</span>
+      </button>
+      <button class="btn btn-outline-danger w-100 d-flex align-items-center" (click)="logout()" aria-label="Logout">
+        <i class="bi bi-lock-fill me-2"></i><span class="flex-grow-1 text-start">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main flex-grow-1 d-flex flex-column">
+    <header class="topbar navbar navbar-expand-md navbar-light bg-white border-bottom">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <!-- toggle only visible on sm -->
+          <button class="btn btn-outline-secondary d-md-none me-2" type="button" (click)="toggleSidebar()" aria-label="Toggle menu">
+            <i class="bi bi-list"></i>
+          </button>
+
+          <!-- optional collapse for title / breadcrumbs -->
+
+        </div>
+
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <a routerLink="/profile" class="btn btn-sm btn-outline-secondary">Hi, Admin</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="content flex-grow-1 overflow-auto">
+      <div class="container py-4">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+
+    <footer class="app-footer text-center py-3 border-top bg-white">
+      © {{ year }} MyApp — All rights reserved
+    </footer>
   </div>
 </div>

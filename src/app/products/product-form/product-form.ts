@@ -13,7 +13,7 @@ import { Product } from '../../models/product.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './product-form.html',
-  styleUrls: ['./product-form.css'],
+  styleUrls: ['./product-form.scss'],
 })
 export class ProductForm implements OnInit {
   form!: FormGroup;

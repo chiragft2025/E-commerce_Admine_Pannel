@@ -1,0 +1,34 @@
+/* Login page layout */
+.auth-page {
+  min-height: 100vh;
+  background: #f3f7fb; // matches your global theme
+  padding: 1.5rem;
+}
+
+/* Centered login card */
+.auth-card {
+  width: 100%;
+  max-width: 480px;                 // wider than default
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
+}
+
+/* Error messages */
+.text-danger.small {
+  font-size: 0.85rem;
+}
+
+/* Button style overrides (if needed) */
+button.btn-primary {
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 2rem !important;
+  }
+}

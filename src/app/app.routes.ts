@@ -1,3 +1,4 @@
+import { Forbidden } from './forbidden/forbidden';
 import { Routes } from '@angular/router';
 import { Login } from './auth/login/login';
 import { Register } from './auth/register/register';
@@ -19,10 +20,13 @@ import { CustomerDetail } from './Customers/customers-details/customers-details'
 import { RoleList } from './roles/role-list/role-list';
 import { RoleForm } from './roles/role-form/role-form';
 import { UserDetails } from './User/user-details/user-details';
+import { PermissionGuard } from './guards/permission.guard';
+import { UserRoleManage } from './User/user-role-manage/user-role-manage';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'register', component: Register },
+  { path: 'forbidden', component: Forbidden },
 
   {
     path: '',
@@ -32,31 +36,142 @@ export const routes: Routes = [
       { path: '', component: Home },
       { path: 'home', component: Home },
 
-      { path: 'products', component: ProductsList },
-      { path: 'products/new', component: ProductForm },
-      { path: 'products/:id', component: ProductForm },
+      // Products
+      {
+        path: 'products',
+        component: ProductsList,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Product.View' }
+      },
+      {
+        path: 'products/new',
+        component: ProductForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Product.Manage' }
+      },
+      {
+        path: 'products/:id',
+        component: ProductForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Product.Manage' }
+      },
 
-      { path: 'categories', component: CategoryList },
-      { path: 'categories/new', component: CategoryForm },
-      { path: 'categories/:id', component: CategoryForm },
+      // Categories
+      {
+        path: 'categories',
+        component: CategoryList,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Category.View' }
+      },
+      {
+        path: 'categories/new',
+        component: CategoryForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Category.Manage' }
+      },
+      {
+        path: 'categories/:id',
+        component: CategoryForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Category.Manage' }
+      },
 
-      { path: 'users', component: UserList },
-      { path: 'users/new', component: UserForm },
-      { path: 'users/:id', component: UserForm },
-      {path: 'users/view/:id', component: UserDetails },
+      // Users
+      {
+        path: 'users',
+        component: UserList,
+        canActivate: [PermissionGuard],
+        data: { permission: 'User.Manage' }
+      },
+      {
+        path: 'users/new',
+        component: UserForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'User.Manage' }
+      },
+      {
+        path: 'users/:id',
+        component: UserForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'User.Manage' }
+      },
+      {
+        path: 'users/view/:id',
+        component: UserDetails,
+        canActivate: [PermissionGuard],
+        data: { permission: 'User.View' }
+      },
+      { path: 'users/:id/roles',
+         component: UserRoleManage,
+         canActivate: [PermissionGuard],
+         data: { permission: 'User.Manage' }
+      },
 
-      { path: 'customers', component: CustomerList },
-      { path: 'customers/new', component: CustomerForm },
-      { path: 'customers/:id', component: CustomerForm },
-      { path: 'customers/view/:id', component: CustomerDetail },
+      // Customers
+      {
+        path: 'customers',
+        component: CustomerList,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Customer.View' }
+      },
+      {
+        path: 'customers/new',
+        component: CustomerForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Customer.Manage' }
+      },
+      {
+        path: 'customers/:id',
+        component: CustomerForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Customer.Manage' }
+      },
+      {
+        path: 'customers/view/:id',
+        component: CustomerDetail,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Customer.View' }
+      },
 
-      { path: 'orders', component: OrdersList },
-      { path: 'orders/new', component: OrderForm },
-      { path: 'orders/:id', component: OrderDetail },
+      // Orders
+      {
+        path: 'orders',
+        component: OrdersList,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Order.View' }
+      },
+      {
+        path: 'orders/new',
+        component: OrderForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Order.Manage' }
+      },
+      {
+        path: 'orders/:id',
+        component: OrderDetail,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Order.View' }
+      },
 
-      { path: 'roles', component: RoleList },
-      { path: 'roles/new', component: RoleForm },
-      { path: 'roles/:id', component: RoleForm },
+      // Roles
+      {
+        path: 'roles',
+        component: RoleList,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Role.Manage' } // only users with Role.Manage can view/manage roles
+      },
+      {
+        path: 'roles/new',
+        component: RoleForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Role.Manage' }
+      },
+      {
+        path: 'roles/:id',
+        component: RoleForm,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Role.Manage' }
+      }
     ],
   },
 

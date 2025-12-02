@@ -1,0 +1,52 @@
+/* product-form.component.scss */
+
+/* Card wrapper */
+.form-card {
+  max-width: 900px;
+  margin: 20px auto;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.04);
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+}
+
+/* Labels and helper text */
+.form-label {
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Small helper text */
+.text-danger.small {
+  font-size: 0.85rem;
+}
+
+/* Tag row styling */
+.tag-row {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+}
+
+.tag-row .form-control {
+  border-radius: 8px;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* Ensure add-tag button sits nicely on small screens */
+@media (max-width: 576px) {
+  .tag-row {
+    flex-direction: column;
+    gap: .5rem;
+  }
+
+  .d-flex.justify-content-end {
+    flex-direction: column;
+    gap: .5rem;
+  }
+}

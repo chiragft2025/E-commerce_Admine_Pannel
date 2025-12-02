@@ -4,13 +4,14 @@ import { Router, RouterModule } from '@angular/router';
 import { CustomerService, Paged } from '../../services/customer.service';
 import { Customer } from '../../models/customers.model';
 import { FormsModule } from '@angular/forms';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-customer-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule,HasPermissionDirective],
   templateUrl: './customers-list.html',
-  styleUrls: ['./customers-list.css']
+  styleUrls: ['./customers-list.scss']
 })
 export class CustomerList implements OnInit {
   customers: Customer[] = [];

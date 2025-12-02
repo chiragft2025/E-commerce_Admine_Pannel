@@ -1,0 +1,97 @@
+/* orders.component.scss */
+
+/* Theme tokens (use global ones if available) */
+$card-radius: 12px;
+$card-border: rgba(15,23,42,0.04);
+$card-shadow: 0 8px 30px rgba(16,24,40,0.06);
+
+/* Page header */
+.page-header {
+  .actions {
+    display: flex;
+    gap: .5rem;
+    align-items: center;
+  }
+}
+
+/* Table card look */
+.orders-table {
+  background: #fff;
+  border-radius: $card-radius;
+  border: 1px solid $card-border;
+  box-shadow: $card-shadow;
+  overflow: hidden;
+
+  thead th {
+    border-bottom: 1px solid #e9edf2;
+  }
+
+  tbody tr:hover {
+    background: #fbfdff;
+  }
+
+  td, th {
+    vertical-align: middle;
+    padding: .75rem 1rem;
+  }
+
+  td[data-label="Total"] {
+    font-weight: 600;
+  }
+}
+
+/* Empty card */
+.no-orders-found {
+  border-radius: $card-radius;
+  border: 1px solid $card-border;
+  background: #fff;
+  box-shadow: $card-shadow;
+}
+
+/* Responsive stacked-table for small screens */
+@media (max-width: 900px) {
+  .orders-table thead { display: none; }
+
+  .orders-table, tbody, tr, td {
+    display: block;
+    width: 100%;
+  }
+
+  .orders-table tbody tr {
+    margin-bottom: 1rem;
+    border: 1px solid rgba(15,23,42,0.06);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .orders-table tbody td {
+    text-align: right;
+    padding-left: 50%;
+    position: relative;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .orders-table tbody td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    width: calc(50% - 2rem);
+    text-align: left;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  .orders-table td[data-label="Actions"] {
+    text-align: left;
+    padding-left: 1rem;
+    border-bottom: none;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+  }
+}
+
+/* Small tweaks */
+.pagination-info { margin-left: .5rem; }

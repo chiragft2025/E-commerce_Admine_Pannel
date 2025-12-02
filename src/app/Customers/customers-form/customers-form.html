@@ -1,32 +1,52 @@
-<div class="form-card">
-  <h2>{{ isEdit ? 'Edit Customer' : 'New Customer' }}</h2>
+<div class="form-card card shadow-sm p-4">
 
-  <form [formGroup]="form" (ngSubmit)="save()">
+  <h2 class="mb-4">{{ isEdit ? 'Edit Customer' : 'New Customer' }}</h2>
 
-    <label>Name</label>
-    <input formControlName="fullName" />
-    <small *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid">
-      Required
-    </small>
+  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
 
-    <label>Email</label>
-    <input formControlName="email" />
-    <small *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
-      Invalid email
-    </small>
+    <div class="row g-3">
+      <!-- Full name -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-control" formControlName="fullName" />
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid">
+          Required
+        </div>
+      </div>
 
-    <label>Phone</label>
-    <input formControlName="phone" />
+      <!-- Email -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" formControlName="email" />
+        <div class="text-danger small mt-1"
+             *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+          Invalid email
+        </div>
+      </div>
 
-    <label>Address</label>
-    <textarea formControlName="address"></textarea>
+      <!-- Phone -->
+      <div class="col-12 col-md-6">
+        <label class="form-label">Phone</label>
+        <input type="tel" class="form-control" formControlName="phone" />
+      </div>
 
-    <div *ngIf="error" class="error">{{ error }}</div>
-
-    <div class="actions">
-      <button type="submit">{{ isEdit ? 'Update' : 'Create' }}</button>
-      <button type="button" (click)="cancel()">Cancel</button>
+      <!-- Address -->
+      <div class="col-12">
+        <label class="form-label">Address</label>
+        <textarea class="form-control" formControlName="address" rows="3"></textarea>
+      </div>
     </div>
 
+    <!-- Error alert -->
+    <div *ngIf="error" class="alert alert-danger mt-3">{{ error }}</div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
+        {{ isEdit ? 'Update' : 'Create' }}
+      </button>
+      <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
+    </div>
   </form>
 </div>

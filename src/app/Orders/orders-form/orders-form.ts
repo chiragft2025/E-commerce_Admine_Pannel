@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Paged } from './../../services/product';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -12,22 +13,25 @@ import { ProductService } from '../../services/product';
 import { CustomerService } from '../../services/customer.service';
 import { OrderService } from '../../services/order.service';
 import { Product } from '../../models/product.model';
-import { debounceTime } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { Subject, of } from 'rxjs';
+import { debounceTime, takeUntil, catchError } from 'rxjs/operators';
+import { Customer } from '../../models/customers.model';
 
 @Component({
   selector: 'app-order-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './orders-form.html',
-  styleUrls: ['./orders-form.css']
+  styleUrls: ['./orders-form.scss']
 })
-export class OrderForm implements OnInit {
+export class OrderForm implements OnInit, OnDestroy {
   form!: FormGroup;
   customers: any[] = [];
   loading = false;
+  loadingCustomers = false;
   saving = false;
   error: string | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -45,11 +49,36 @@ export class OrderForm implements OnInit {
     });
 
     // load customers for dropdown
-    //this.cs.list().subscribe({ next: c => this.customers = c, error: e => console.error(e) });
+    this.loadCustomers();
 
     // add initial one item row
     this.addItem();
   }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+private loadCustomers() {
+  this.loadingCustomers = true;
+
+  // request many customers (pageSize large to approximate "all")
+  this.cs.listPaged(undefined, 1, 1000)
+    .pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        console.error('Failed to load customers', err);
+        this.error = 'Failed to load customers. Try again later.';
+        // return an empty paged result so subscribe next runs
+        return of({ items: [], total: 0, page: 1, pageSize: 0 } as Paged<Customer>);
+      })
+    )
+    .subscribe((paged: Paged<Customer>) => {
+      this.customers = paged.items || [];
+      this.loadingCustomers = false;
+    });
+}
 
   get itemsArr(): FormArray {
     return this.form.get('items') as FormArray;
@@ -64,20 +93,17 @@ export class OrderForm implements OnInit {
       quantity: [1, [Validators.required, Validators.min(1)]]
     });
 
-    // valueChanges can emit number | null | undefined, so type accordingly
     const productIdControl = fg.get('productId');
     if (productIdControl) {
       productIdControl.valueChanges
-        .pipe(debounceTime(300))
+        .pipe(debounceTime(300), takeUntil(this.destroy$))
         .subscribe((pid: number | null) => {
-          // guard: if falsy (null/undefined/0) reset fields
           if (!pid) {
             fg.patchValue({ productName: '', unitPrice: 0, stock: 0 }, { emitEvent: false });
             return;
           }
 
-          // fetch product details by id
-          this.ps.get(pid).subscribe({
+          this.ps.get(pid).pipe(takeUntil(this.destroy$)).subscribe({
             next: (p: Product) => {
               fg.patchValue(
                 { productName: p.name ?? '', unitPrice: p.price ?? 0, stock: p.stock ?? 0 },
@@ -90,7 +116,6 @@ export class OrderForm implements OnInit {
             }
           });
         }, (err) => {
-          // valueChanges stream error (rare) — log it
           console.error('valueChanges error', err);
         });
     }
@@ -114,7 +139,6 @@ export class OrderForm implements OnInit {
     this.error = null;
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
-    // validate stock for each item (optional)
     for (const c of this.itemsArr.controls) {
       const qty = Number(c.get('quantity')!.value) || 0;
       const stock = Number(c.get('stock')!.value) || 0;
@@ -134,7 +158,7 @@ export class OrderForm implements OnInit {
     };
 
     this.saving = true;
-    this.os.create(payload).subscribe({
+    this.os.create(payload).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => { this.saving = false; this.router.navigateByUrl('/orders'); },
       error: (err) => { this.saving = false; this.error = err?.error?.message ?? 'Failed to create order'; console.error(err); }
     });

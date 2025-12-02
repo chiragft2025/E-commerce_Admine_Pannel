@@ -9,7 +9,7 @@ import { Router, RouterLinkActive, RouterLink } from '@angular/router';
   standalone: true,                // <-- required for imports to work in Angular 20+
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
-  styleUrls: ['./login.css'],
+  styleUrls: ['./login.scss'],
 })
 export class Login {
   form!: FormGroup;

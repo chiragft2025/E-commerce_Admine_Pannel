@@ -9,7 +9,7 @@ import { RoleDto } from '../../models/role.model';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './role-list.html',
-  styleUrls: ['./role-list.css']
+  styleUrls: ['./role-list.scss']
 })
 export class RoleList implements OnInit {
   roles: RoleDto[] = [];

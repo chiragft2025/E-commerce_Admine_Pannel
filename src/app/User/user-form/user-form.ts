@@ -11,7 +11,7 @@ import { User, CreateUserRequest, UpdateUserRequest, Role } from '../../models/U
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './user-form.html',
-  styleUrls: ['./user-form.css']
+  styleUrls: ['./user-form.scss']
 })
 export class UserForm implements OnInit {
   form!: FormGroup;

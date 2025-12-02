@@ -1,28 +1,63 @@
-<div class="page-header">
-  <h2>Categories</h2>
-  <button (click)="add()">Add Category</button>
-</div>
+<div class="container py-3">
+  <div class="page-header d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Categories</h2>
 
-<table *ngIf="categories.length">
-  <thead>
-    <tr>
-      <th>Title</th>
-      <th>Description</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-   <tr *ngFor="let c of categories">
-  <td data-label="Title">{{ c.title }}</td>
-  <td data-label="Description">{{ c.description }}</td>
-  <td data-label="Actions">
     <div class="actions">
-      <button (click)="edit(c)">Edit</button>
-      <button (click)="remove(c)">Delete</button>
+      <button
+        *appHasPermission="'Category.Manage'"
+        class="btn btn-primary"
+        (click)="add()"
+        aria-label="Add Category"
+      >
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>
+        Add Category
+      </button>
     </div>
-  </td>
-</tr>
-  </tbody>
-</table>
+  </div>
 
-<div *ngIf="!categories.length">No categories found.</div>
+  <div *ngIf="categories?.length; else empty" class="table-responsive">
+    <table class="table table-hover align-middle category-table mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Title</th>
+          <th scope="col">Description</th>
+          <th scope="col" class="text-end"  *appHasPermission="'Category.Manage'" >Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let c of categories">
+          <td data-label="Title">{{ c.title }}</td>
+          <td data-label="Description">{{ c.description }}</td>
+          <td data-label="Actions" class="text-end"  *appHasPermission="'Category.Manage'">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+              <button
+                class="btn btn-outline-primary"
+                (click)="edit(c)"
+                title="Edit"
+                aria-label="Edit category"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
+
+              <button
+                class="btn btn-outline-danger"
+                (click)="remove(c)"
+                title="Delete"
+                aria-label="Delete category"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <ng-template #empty>
+    <div class="no-categories-found card p-3 text-center text-muted mt-3">
+      No categories found.
+    </div>
+  </ng-template>
+</div>

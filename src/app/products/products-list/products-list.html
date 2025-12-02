@@ -1,46 +1,113 @@
-<div class="page-header">
-  <h3>Products</h3>
-  <div class="actions">
-    <input placeholder="Search..." [(ngModel)]="q" (keyup.enter)="onSearch()" />
-    <button (click)="onSearch()" [disabled]="loading">Search</button>
-    <button (click)="add()">Add product</button>
+<div class="container py-3">
+  <div class="page-header d-flex align-items-center justify-content-between mb-3">
+    <h3 class="mb-0">Products</h3>
+
+    <div class="actions d-flex align-items-center gap-2">
+      <input
+        class="form-control form-control-sm"
+        placeholder="Search..."
+        [(ngModel)]="q"
+        (keyup.enter)="onSearch()"
+        aria-label="Search products"
+      />
+
+      <button class="btn btn-sm btn-outline-secondary" (click)="onSearch()" [disabled]="loading" aria-label="Search">
+        <i class="bi bi-search"></i>
+      </button>
+
+      <button
+        *appHasPermission="'Product.Manage'"
+        class="btn btn-sm btn-primary"
+        (click)="add()"
+        aria-label="Add product"
+      >
+        <i class="bi bi-plus-lg me-1"></i>Add New
+      </button>
+    </div>
   </div>
-</div>
 
-<div *ngIf="loading">Loading…</div>
+  <div *ngIf="loading" class="text-center my-4">
+    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <div class="visually-hidden">Loading…</div>
+  </div>
 
-<table class="products-table" *ngIf="!loading && products?.length">
-  <thead>
-    <tr>
-      <th>Name</th><th>Price</th><th>Stock</th><th>SKU</th><th>Category</th><th>Tags</th><th>Active</th><th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let p of products">
-      <td>{{ p.name }}</td>
-      <td>{{ p.price | number:'1.2-2' }}</td>
-      <td>{{ p.stock }}</td>
-      <td>{{ p.sku }}</td>
-      <td>{{ catTitle(p) }}</td>
-      <td>{{ tagsList(p) }}</td>
-      <td>{{ p.isActive ? 'Yes' : 'No' }}</td>
-      <td class="actions-col">
-        <button (click)="edit(p)">Edit</button>
-        <button (click)="remove(p)">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+  <div *ngIf="!loading && products?.length; else noProducts" class="table-responsive">
+    <table class="table table-hover align-middle products-table mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>SKU</th>
+          <th>Category</th>
+          <th>Tags</th>
+          <th>Active</th>
+          <th class="text-end"  *appHasPermission="'Product.Manage'" >Actions</th>
+        </tr>
+      </thead>
 
-<div *ngIf="!loading && (!products || products.length === 0)">No products found.</div>
+      <tbody>
+        <tr *ngFor="let p of products">
+          <td data-label="Name">{{ p.name }}</td>
+          <td data-label="Price">{{ p.price | number:'1.2-2' }}</td>
+          <td data-label="Stock">{{ p.stock }}</td>
+          <td data-label="SKU">{{ p.sku }}</td>
+          <td data-label="Category">{{ catTitle(p) }}</td>
+          <td data-label="Tags">{{ tagsList(p) }}</td>
+          <td data-label="Active">{{ p.isActive ? 'Yes' : 'No' }}</td>
+          <td class="text-end" data-label="Actions" *appHasPermission="'Product.Manage'">
+            <div class="btn-group btn-group-sm" role="group" aria-label="Product actions" >
+              <button
+                class="btn btn-outline-primary"
+                (click)="edit(p)"
+                title="Edit"
+                aria-label="Edit product"
+              >
+                <i class="bi bi-pencil"></i>
+              </button>
 
-<!-- pagination -->
-<div class="pagination" *ngIf="total > pageSize">
-  <button (click)="prev()" [disabled]="page===1">Prev</button>
+              <button
+                class="btn btn-outline-danger"
+                (click)="remove(p)"
+                title="Delete"
+                aria-label="Delete product"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-  <button *ngFor="let p of pages" (click)="goToPage(p)" [class.active]="p===page">{{ p }}</button>
+  <ng-template #noProducts>
+    <div *ngIf="!loading" class="no-products-found card p-3 text-center text-muted mt-3">
+      No products found.
+    </div>
+  </ng-template>
 
-  <button (click)="next()" [disabled]="page === pages[pages.length-1]">Next</button>
+  <!-- Pagination -->
+  <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4">
+    <div class="btn-group btn-group-sm" role="group" aria-label="Page navigation">
+      <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
 
-  <div class="pagination-info">Page {{page}} of {{pages.length}} — {{total}} items</div>
+      <ng-container *ngFor="let p of pages">
+        <button
+          class="btn"
+          [ngClass]="p === page ? 'btn-primary' : 'btn-outline-secondary'"
+          (click)="goToPage(p)"
+          [attr.aria-current]="p === page ? 'page' : null"
+        >
+          {{ p }}
+        </button>
+      </ng-container>
+
+      <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === pages[pages.length - 1]">Next</button>
+    </div>
+
+    <div class="pagination-info text-muted small">
+      Page {{ page }} of {{ pages.length }} — {{ total }} items
+    </div>
+  </div>
 </div>

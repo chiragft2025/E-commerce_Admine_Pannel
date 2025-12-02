@@ -1,0 +1,34 @@
+/* user-details.component.scss */
+
+.details-card {
+  max-width: 920px;
+  margin: 12px auto;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.04);
+  box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+  background: #fff;
+}
+
+/* Status badge styling (keeps Bootstrap classes but refines padding) */
+.status-badge {
+  padding: .45rem .6rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* Badge for roles */
+.badge {
+  font-weight: 600;
+  font-size: .85rem;
+}
+
+/* Small text helper */
+.text-muted.small {
+  color: #64748b;
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+  .details-card { padding: 1rem; }
+  .d-flex.justify-content-end { justify-content: flex-start; }
+}

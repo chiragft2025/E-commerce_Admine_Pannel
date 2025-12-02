@@ -1,4 +1,41 @@
-.detail-card { max-width:700px; margin:18px auto; background:#fff; padding:16px; border-radius:8px; box-shadow:0 3px 10px rgba(0,0,0,0.04); }
-.detail-card h2 { margin-top:0; }
-.row { margin:8px 0; font-size:14px; }
-.address { margin-top:6px; padding:10px; background:#f9fafb; border-radius:6px; }
+.detail-card {
+  max-width: 600px; /* Adjust width suitable for viewing details */
+  margin: 20px auto; /* Centers the card on the page */
+  padding: 28px; /* Consistent with global card padding */
+
+  /* Inherits bg, border, shadow from the global .card selector */
+}
+
+/* Style for individual rows of data within the card */
+.row {
+  margin-bottom: 12px; /* Consistent spacing, matches global form gap */
+  line-height: 1.4;
+  color: #334155; /* Match global label color */
+}
+
+.row strong {
+  color: #0f172a; /* Match global body text color for emphasis */
+}
+
+/* Specific styling for the multiline address block */
+.address {
+  margin-top: 4px;
+  /* Indent slightly to visually align below the 'Address:' label */
+  padding-left: 15px;
+}
+
+/* Loading/Not Found Messages */
+.loading-message, .not-found-message {
+    /* Use global .card styles for consistent look */
+    /* Ensure your HTML uses <div class="card not-found-message"> */
+    padding: 28px;
+    text-align: center;
+    margin-top: 1rem;
+    color: #64748b;
+    font-style: italic;
+}
+
+/* The "Back" button uses the global default blue button style */
+.detail-card button {
+    margin-top: 20px;
+}

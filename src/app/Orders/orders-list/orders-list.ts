@@ -1,3 +1,4 @@
+import { HasPermissionDirective } from './../../directives/has-permission.directive';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OrderService } from '../../services/order.service';
@@ -7,9 +8,9 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-orders-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule,HasPermissionDirective],
   templateUrl: './orders-list.html',
-  styleUrls: ['./orders-list.css']
+  styleUrls: ['./orders-list.scss']
 })
 export class OrdersList implements OnInit {
   orders: any[] = [];

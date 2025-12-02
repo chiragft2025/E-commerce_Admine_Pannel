@@ -8,7 +8,7 @@ import { UserService } from '../../services/UserService';
   standalone: true,
   imports: [CommonModule,RouterModule],
   templateUrl: './user-details.html',
-  styleUrls: ['./user-details.css']
+  styleUrls: ['./user-details.scss']
 })
 export class UserDetails implements OnInit {
 

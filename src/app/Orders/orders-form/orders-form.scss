@@ -1,0 +1,39 @@
+/* order-form.component.scss */
+
+/* Card wrapper */
+.form-card {
+  max-width: 980px;
+  margin: 20px auto;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.04);
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+}
+
+/* Item row */
+.item-row {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid rgba(15,23,42,0.04);
+}
+
+/* Make inputs a little smaller visually inside item rows */
+.form-control-sm {
+  border-radius: 8px;
+}
+
+/* Summary style */
+.fs-5.fw-semibold {
+  color: #0b1220;
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+  .item-row .row > [class*="col-"] {
+    margin-bottom: 0.5rem;
+  }
+  .d-flex.justify-content-end {
+    flex-direction: column;
+    gap: .5rem;
+  }
+}

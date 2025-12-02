@@ -10,7 +10,7 @@ import { Category } from '../../models/categories.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './category-form.html',
-  styleUrls: ['./category-form.css']
+  styleUrls: ['./category-form.scss']
 })
 export class CategoryForm implements OnInit {
   form!: FormGroup;

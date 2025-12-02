@@ -1,41 +1,91 @@
-<div class="form-card">
-  <h2>New Order</h2>
+<div class="form-card card shadow-sm p-4">
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    <label>Customer</label>
-    <select formControlName="customerId">
-      <option value="">-- select customer --</option>
-      <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.fullName }}</option>
-    </select>
+  <h2 class="mb-4">New Order</h2>
 
-    <label>Shipping Address (optional)</label>
-    <textarea formControlName="shippingAddress"></textarea>
+  <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
 
-    <label>Items</label>
-    <div formArrayName="items">
-      <div *ngFor="let item of itemsArr.controls; let i=index" [formGroupName]="i" class="item-row">
-        <div class="row">
-          <input placeholder="Product ID" formControlName="productId" type="number" />
-          <input placeholder="Product name" formControlName="productName" readonly />
+    <!-- Customer -->
+    <div class="mb-3">
+      <label class="form-label">Customer</label>
+      <select class="form-select" formControlName="customerId">
+        <option value="">-- select customer --</option>
+        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.fullName }}</option>
+      </select>
+    </div>
+
+    <!-- Shipping Address -->
+    <div class="mb-3">
+      <label class="form-label">Shipping Address (optional)</label>
+      <textarea class="form-control" rows="2" formControlName="shippingAddress"></textarea>
+    </div>
+
+    <!-- Items -->
+    <div class="mb-3">
+      <label class="form-label">Items</label>
+
+      <div formArrayName="items" class="d-flex flex-column gap-3">
+
+        <div *ngFor="let item of itemsArr.controls; let i = index" [formGroupName]="i" class="item-row p-3 border rounded">
+          <div class="row g-2 align-items-center">
+            <!-- Product ID (lookup) -->
+            <div class="col-12 col-md-3">
+              <label class="form-label small d-block">Product ID</label>
+              <input type="number" class="form-control form-control-sm" formControlName="productId" placeholder="Product ID" />
+            </div>
+
+            <!-- Product Name (readonly) -->
+            <div class="col-12 col-md-5">
+              <label class="form-label small d-block">Product name</label>
+              <input type="text" class="form-control form-control-sm" formControlName="productName" readonly />
+            </div>
+
+            <!-- Unit price -->
+            <div class="col-6 col-md-2">
+              <label class="form-label small d-block">Unit price</label>
+              <input type="number" class="form-control form-control-sm" formControlName="unitPrice" readonly />
+            </div>
+
+            <!-- Stock -->
+            <div class="col-6 col-md-2">
+              <label class="form-label small d-block">Stock</label>
+              <input type="number" class="form-control form-control-sm" formControlName="stock" readonly />
+            </div>
+
+            <!-- Quantity + Remove -->
+            <div class="col-12 col-md-3">
+              <label class="form-label small d-block">Quantity</label>
+              <div class="d-flex gap-2">
+                <input type="number" class="form-control form-control-sm" formControlName="quantity" min="1" />
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeItem(i)" aria-label="Remove item">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="row">
-          <input placeholder="Unit price" formControlName="unitPrice" type="number" readonly />
-          <input placeholder="Stock" formControlName="stock" type="number" readonly />
-          <input placeholder="Quantity" formControlName="quantity" type="number" />
-          <button type="button" (click)="removeItem(i)">Remove</button>
-        </div>
+
+      </div>
+
+      <div class="mt-3">
+        <button type="button" class="btn btn-sm btn-outline-primary" (click)="addItem()">
+          <i class="bi bi-plus-lg me-1"></i> Add Item
+        </button>
       </div>
     </div>
 
-    <button type="button" (click)="addItem()">+ Add Item</button>
+    <!-- Summary -->
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div class="text-muted">Total:</div>
+      <div class="fs-5 fw-semibold">{{ total | number:'1.2-2' }}</div>
+    </div>
 
-    <div class="summary">Total: {{ total | number:'1.2-2' }}</div>
+    <!-- Error -->
+    <div *ngIf="error" class="alert alert-danger mt-3">{{ error }}</div>
 
-    <div *ngIf="error" class="error">{{ error }}</div>
-
-    <div class="actions">
-      <button type="submit" [disabled]="saving">Place order</button>
-      <button type="button" (click)="cancel()">Cancel</button>
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button type="submit" class="btn btn-primary" [disabled]="saving">Place order</button>
+      <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
     </div>
   </form>
 </div>

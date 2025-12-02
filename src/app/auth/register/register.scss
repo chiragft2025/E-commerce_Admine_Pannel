@@ -1,0 +1,33 @@
+/* Registration page layout */
+.auth-page {
+  min-height: 100vh;
+  background: #f3f7fb;
+  padding: 1.5rem;
+}
+
+/* Centered card */
+.auth-card {
+  width: 100%;
+  max-width: 520px;                 // slightly wider for registration
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  box-shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
+}
+
+.text-danger.small {
+  font-size: 0.85rem;
+}
+
+/* Buttons */
+button.btn-primary {
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+/* Mobile spacing */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 2rem !important;
+  }
+}

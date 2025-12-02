@@ -1,15 +1,36 @@
-<div class="form-card">
-  <h2>{{ isEdit ? "Edit Category" : "New Category" }}</h2>
+<div class="form-card card shadow-sm p-4">
+
+  <h2 class="mb-4">{{ isEdit ? "Edit Category" : "New Category" }}</h2>
 
   <form [formGroup]="form" (ngSubmit)="save()">
-    <label>Title</label>
-    <input formControlName="title" />
-    <small *ngIf="form.get('title')?.touched && form.get('title')?.invalid">* Title is Required</small>
 
-    <label>Description</label>
-    <textarea formControlName="description"></textarea>
+    <!-- Title -->
+    <div class="mb-3">
+      <label class="form-label">Title</label>
+      <input type="text" class="form-control" formControlName="title" />
 
-    <button type="submit">{{ isEdit ? "Update" : "Create" }}</button>
-    <button type="button" (click)="cancel()">Cancel</button>
+      <div class="text-danger small mt-1"
+           *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
+        * Title is required
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <textarea class="form-control" formControlName="description" rows="3"></textarea>
+    </div>
+
+    <!-- Buttons -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+      <button type="submit" class="btn btn-primary px-4">
+        {{ isEdit ? "Update" : "Create" }}
+      </button>
+
+      <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+
   </form>
 </div>
