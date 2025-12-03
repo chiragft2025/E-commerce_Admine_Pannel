@@ -10,8 +10,14 @@
       <input type="text" class="form-control" formControlName="title" />
 
       <div class="text-danger small mt-1"
-           *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
+           *ngIf="form.get('title')?.touched && form.get('title')?.invalid && form.get('title')?.hasError('required')">
         * Title is required
+      </div>
+
+      <!-- Duplicate error from server -->
+      <div class="text-danger small mt-1"
+           *ngIf="form.get('title')?.touched && form.get('title')?.hasError('duplicate')">
+        * A category with this title already exists
       </div>
     </div>
 
@@ -19,6 +25,11 @@
     <div class="mb-3">
       <label class="form-label">Description</label>
       <textarea class="form-control" formControlName="description" rows="3"></textarea>
+    </div>
+
+    <!-- Global server error (non-field) -->
+    <div *ngIf="serverErrorMessage" class="alert alert-danger small">
+      {{ serverErrorMessage }}
     </div>
 
     <!-- Buttons -->

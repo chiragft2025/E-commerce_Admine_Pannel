@@ -1,52 +1,79 @@
 <div class="form-card card shadow-sm p-4">
 
-  <h2 class="mb-4">{{ isEdit ? 'Edit Customer' : 'New Customer' }}</h2>
+  <h2 class="mb-4">{{ isEdit ? "Edit Customer" : "New Customer" }}</h2>
 
-  <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+  <form [formGroup]="form" (ngSubmit)="save()">
 
-    <div class="row g-3">
-      <!-- Full name -->
-      <div class="col-12 col-md-6">
-        <label class="form-label">Name</label>
-        <input type="text" class="form-control" formControlName="fullName" />
-        <div class="text-danger small mt-1"
-             *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid">
-          Required
-        </div>
+    <!-- Full Name -->
+    <div class="mb-3">
+      <label class="form-label">Full Name</label>
+      <input type="text" class="form-control" formControlName="fullName" />
+
+      <div class="text-danger small mt-1"
+           *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid && form.get('fullName')?.hasError('required')">
+        * Full Name is required
       </div>
 
-      <!-- Email -->
-      <div class="col-12 col-md-6">
-        <label class="form-label">Email</label>
-        <input type="email" class="form-control" formControlName="email" />
-        <div class="text-danger small mt-1"
-             *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
-          Invalid email
-        </div>
-      </div>
-
-      <!-- Phone -->
-      <div class="col-12 col-md-6">
-        <label class="form-label">Phone</label>
-        <input type="tel" class="form-control" formControlName="phone" />
-      </div>
-
-      <!-- Address -->
-      <div class="col-12">
-        <label class="form-label">Address</label>
-        <textarea class="form-control" formControlName="address" rows="3"></textarea>
+      <!-- Duplicate error from server -->
+      <div class="text-danger small mt-1"
+           *ngIf="form.get('fullName')?.touched && form.get('fullName')?.hasError('duplicate')">
+        * A customer with this full name already exists
       </div>
     </div>
 
-    <!-- Error alert -->
-    <div *ngIf="error" class="alert alert-danger mt-3">{{ error }}</div>
+    <!-- Email -->
+    <div class="mb-3">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" formControlName="email" />
 
-    <!-- Actions -->
+      <div class="text-danger small mt-1"
+           *ngIf="form.get('email')?.touched && form.get('email')?.invalid && form.get('email')?.hasError('required')">
+        * Email is required
+      </div>
+
+      <div class="text-danger small mt-1"
+           *ngIf="form.get('email')?.touched && form.get('email')?.invalid && form.get('email')?.hasError('email')">
+        * Please enter a valid email address
+      </div>
+
+      <!-- Duplicate error from server -->
+      <div class="text-danger small mt-1"
+           *ngIf="form.get('email')?.touched && form.get('email')?.hasError('duplicate')">
+        * A customer with this email already exists
+      </div>
+    </div>
+
+    <!-- Phone -->
+    <div class="mb-3">
+      <label class="form-label">Phone</label>
+      <input type="text" class="form-control" formControlName="phone" />
+    </div>
+
+    <!-- Address -->
+    <div class="mb-3">
+      <label class="form-label">Address</label>
+      <textarea class="form-control" formControlName="address" rows="3"></textarea>
+    </div>
+
+    <!-- Global server error (non-field) -->
+    <div *ngIf="error" class="alert alert-danger small">
+      {{ error }}
+    </div>
+
+    <!-- Buttons -->
     <div class="d-flex justify-content-end gap-2 mt-4">
-      <button type="submit" class="btn btn-primary" [disabled]="form.invalid">
-        {{ isEdit ? 'Update' : 'Create' }}
+      <button type="submit" class="btn btn-primary px-4" [disabled]="saving">
+        <span *ngIf="!saving">{{ isEdit ? "Update" : "Create" }}</span>
+        <span *ngIf="saving">
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Saving...
+        </span>
       </button>
-      <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
+
+      <button type="button" class="btn btn-outline-secondary px-4" (click)="cancel()" [disabled]="saving">
+        Cancel
+      </button>
     </div>
+
   </form>
 </div>

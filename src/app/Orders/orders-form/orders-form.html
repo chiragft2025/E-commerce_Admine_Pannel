@@ -8,9 +8,14 @@
     <div class="mb-3">
       <label class="form-label">Customer</label>
       <select class="form-select" formControlName="customerId">
-        <option value="">-- select customer --</option>
+        <option [ngValue]="null">-- select customer --</option>
         <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.fullName }}</option>
       </select>
+
+      <div class="text-danger small mt-1"
+           *ngIf="form.get('customerId')?.touched && form.get('customerId')?.invalid">
+        * Customer is required
+      </div>
     </div>
 
     <!-- Shipping Address -->
@@ -27,10 +32,18 @@
 
         <div *ngFor="let item of itemsArr.controls; let i = index" [formGroupName]="i" class="item-row p-3 border rounded">
           <div class="row g-2 align-items-center">
-            <!-- Product ID (lookup) -->
+            <!-- Product select -->
             <div class="col-12 col-md-3">
-              <label class="form-label small d-block">Product ID</label>
-              <input type="number" class="form-control form-control-sm" formControlName="productId" placeholder="Product ID" />
+              <label class="form-label small d-block">Product</label>
+              <select class="form-select form-select-sm" formControlName="productId">
+                <option [ngValue]="null">-- select product --</option>
+                <option *ngFor="let p of products" [ngValue]="p.id">{{ p.name }}</option>
+              </select>
+
+              <div class="text-danger small mt-1"
+                   *ngIf="item.get('productId')?.touched && item.get('productId')?.invalid">
+                * Product is required
+              </div>
             </div>
 
             <!-- Product Name (readonly) -->
@@ -54,11 +67,25 @@
             <!-- Quantity + Remove -->
             <div class="col-12 col-md-3">
               <label class="form-label small d-block">Quantity</label>
-              <div class="d-flex gap-2">
+              <div class="d-flex gap-2 align-items-start">
                 <input type="number" class="form-control form-control-sm" formControlName="quantity" min="1" />
+
                 <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeItem(i)" aria-label="Remove item">
                   <i class="bi bi-trash"></i>
                 </button>
+              </div>
+
+              <div class="text-danger small mt-1"
+                   *ngIf="item.get('quantity')?.touched && item.get('quantity')?.hasError('required')">
+                * Quantity is required
+              </div>
+              <div class="text-danger small mt-1"
+                   *ngIf="item.get('quantity')?.touched && item.get('quantity')?.hasError('min')">
+                * Quantity must be at least 1
+              </div>
+              <div class="text-danger small mt-1"
+                   *ngIf="item.get('quantity')?.touched && item.get('quantity')?.hasError('exceedsStock')">
+                * Quantity exceeds available stock
               </div>
             </div>
           </div>

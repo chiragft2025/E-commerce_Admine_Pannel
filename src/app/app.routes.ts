@@ -1,3 +1,4 @@
+import { Permission } from './models/permission.model';
 import { Forbidden } from './forbidden/forbidden';
 import { Routes } from '@angular/router';
 import { Login } from './auth/login/login';
@@ -41,19 +42,19 @@ export const routes: Routes = [
         path: 'products',
         component: ProductsList,
         canActivate: [PermissionGuard],
-        data: { permission: 'Product.View' }
+        data: { permission: 'Product.View' },
       },
       {
         path: 'products/new',
         component: ProductForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Product.Manage' }
+        data: { permission: 'Product.Manage' },
       },
       {
         path: 'products/:id',
         component: ProductForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Product.Manage' }
+        data: { permission: 'Product.Manage' },
       },
 
       // Categories
@@ -61,19 +62,19 @@ export const routes: Routes = [
         path: 'categories',
         component: CategoryList,
         canActivate: [PermissionGuard],
-        data: { permission: 'Category.View' }
+        data: { permission: 'Category.View' },
       },
       {
         path: 'categories/new',
         component: CategoryForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Category.Manage' }
+        data: { permission: 'Category.Manage' },
       },
       {
         path: 'categories/:id',
         component: CategoryForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Category.Manage' }
+        data: { permission: 'Category.Manage' },
       },
 
       // Users
@@ -81,30 +82,31 @@ export const routes: Routes = [
         path: 'users',
         component: UserList,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.Manage' }
+        data: { permission: 'User.Manage' },
       },
       {
         path: 'users/new',
         component: UserForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.Manage' }
+        data: { permission: 'User.Manage' },
       },
       {
         path: 'users/:id',
         component: UserForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.Manage' }
+        data: { permission: 'User.Manage' },
       },
       {
         path: 'users/view/:id',
         component: UserDetails,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.View' }
+        data: { permission: 'User.View' },
       },
-      { path: 'users/:id/roles',
-         component: UserRoleManage,
-         canActivate: [PermissionGuard],
-         data: { permission: 'User.Manage' }
+      {
+        path: 'users/:id/roles',
+        component: UserRoleManage,
+        canActivate: [PermissionGuard],
+        data: { permission: 'User.Manage' },
       },
 
       // Customers
@@ -112,25 +114,25 @@ export const routes: Routes = [
         path: 'customers',
         component: CustomerList,
         canActivate: [PermissionGuard],
-        data: { permission: 'Customer.View' }
+        data: { permission: 'Customer.View' },
       },
       {
         path: 'customers/new',
         component: CustomerForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Customer.Manage' }
+        data: { permission: 'Customer.Manage' },
       },
       {
         path: 'customers/:id',
         component: CustomerForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Customer.Manage' }
+        data: { permission: 'Customer.Manage' },
       },
       {
         path: 'customers/view/:id',
         component: CustomerDetail,
         canActivate: [PermissionGuard],
-        data: { permission: 'Customer.View' }
+        data: { permission: 'Customer.View' },
       },
 
       // Orders
@@ -138,19 +140,19 @@ export const routes: Routes = [
         path: 'orders',
         component: OrdersList,
         canActivate: [PermissionGuard],
-        data: { permission: 'Order.View' }
+        data: { permission: 'Order.View' },
       },
       {
         path: 'orders/new',
         component: OrderForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Order.Manage' }
+        data: { permission: 'Order.Manage' },
       },
       {
         path: 'orders/:id',
         component: OrderDetail,
         canActivate: [PermissionGuard],
-        data: { permission: 'Order.View' }
+        data: { permission: 'Order.View' },
       },
 
       // Roles
@@ -158,20 +160,20 @@ export const routes: Routes = [
         path: 'roles',
         component: RoleList,
         canActivate: [PermissionGuard],
-        data: { permission: 'Role.Manage' } // only users with Role.Manage can view/manage roles
+        data: { permission: 'Role.Manage' }, // only users with Role.Manage can view/manage roles
       },
       {
         path: 'roles/new',
         component: RoleForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Role.Manage' }
+        data: { permission: 'Role.Manage' },
       },
       {
         path: 'roles/:id',
         component: RoleForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Role.Manage' }
-      }
+        data: { permission: 'Role.Manage' },
+      },
     ],
   },
 

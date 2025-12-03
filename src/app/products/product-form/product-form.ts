@@ -5,9 +5,9 @@ import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } fr
 
 import { ProductService } from '../../services/product';
 import { CategoryService } from '../../services/category';
-// <-- updated import path (adjust relative path if your file layout differs)
 import { Category } from '../../models/categories.model';
 import { Product } from '../../models/product.model';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-product-form',
@@ -35,7 +35,6 @@ export class ProductForm implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Build form
     this.form = this.fb.group({
       name: ['', Validators.required],
       sku: ['', Validators.required],
@@ -44,30 +43,18 @@ export class ProductForm implements OnInit {
       stock: [1, [Validators.required, Validators.min(1)]],
       isActive: [true],
       categoryId: ['', Validators.required],
-      tags: this.fb.array([]) // [{"name":""},...]
+      tags: this.fb.array([])
     });
 
-    // Load categories in a defensive way (accept plain array or paged response)
-    // If your CategoryService.list supports pagination, call it with params, otherwise
-    // this will still work because we detect the shape of the response.
     this.cs.list?.(1, 100, '').subscribe({
       next: (res: any) => {
-        // res can be: Category[]  OR  { items: Category[], page, totalPages, ... }
-        if (!res) {
-          this.categories = [];
-        } else if (Array.isArray(res)) {
-          this.categories = res;
-        } else if (Array.isArray(res.items)) {
-          this.categories = res.items;
-        } else {
-          // fallback: try to coerce common property names (robust)
-          this.categories = Array.isArray(res.data) ? res.data : [];
-        }
+        if (Array.isArray(res)) this.categories = res;
+        else if (Array.isArray(res?.items)) this.categories = res.items;
+        else this.categories = [];
       },
       error: (e) => console.error('Failed to load categories', e),
     });
 
-    // Check if edit mode
     const idStr = this.route.snapshot.paramMap.get('id');
     if (idStr && idStr !== 'new') {
       this.id = Number(idStr);
@@ -76,17 +63,12 @@ export class ProductForm implements OnInit {
     }
   }
 
-  // Accessor for tags FormArray
   get tagsArray() {
     return this.form.get('tags') as FormArray;
   }
 
   addTag(name = '') {
-    this.tagsArray.push(
-      this.fb.group({
-        name: [name, Validators.required],
-      })
-    );
+    this.tagsArray.push(this.fb.group({ name: [name, Validators.required] }));
   }
 
   removeTag(index: number) {
@@ -104,25 +86,23 @@ export class ProductForm implements OnInit {
           price: p.price,
           stock: p.stock,
           isActive: p.isActive,
-          // support both p.category (object) or p.categoryId (id)
           categoryId: (p as any).category?.id ?? (p as any).categoryId ?? ''
         });
 
-        // Load tags
         this.tagsArray.clear();
-        if (p.tags && p.tags.length) {
+        if (p.tags?.length) {
           p.tags.forEach((t) => this.addTag(t.name));
         }
 
         this.loading = false;
       },
-      error: (err) => {
-        console.error(err);
-        this.loading = false;
-      },
+      error: () => { this.loading = false; }
     });
   }
 
+  // -----------------------------
+  // SAVE with duplicate-name error
+  // -----------------------------
   save() {
     this.error = null;
 
@@ -139,16 +119,31 @@ export class ProductForm implements OnInit {
       tags: this.form.value.tags.map((t: any) => ({ name: t.name?.trim() }))
     };
 
+    const handleError = (err: HttpErrorResponse) => {
+      this.saving = false;
+
+      const msg: string =
+        typeof err?.error === 'string'
+          ? err.error
+          : err?.error?.message || err.message || 'Error occurred';
+
+      // 🔥 Detect duplicate product name from backend
+      if (msg.toLowerCase().includes('product name') && msg.toLowerCase().includes('exist')) {
+        this.error = 'A product with this name already exists.';
+        return;
+      }
+
+      // fallback: generic error
+      this.error = msg || 'Failed to save product';
+    };
+
     if (this.isEdit && this.id) {
       this.ps.update(this.id, payload).subscribe({
         next: () => {
           this.saving = false;
           this.router.navigateByUrl('/products');
         },
-        error: (err) => {
-          this.saving = false;
-          this.error = err?.error?.message ?? 'Failed to update product';
-        },
+        error: handleError
       });
     } else {
       this.ps.create(payload).subscribe({
@@ -156,10 +151,7 @@ export class ProductForm implements OnInit {
           this.saving = false;
           this.router.navigateByUrl('/products');
         },
-        error: (err) => {
-          this.saving = false;
-          this.error = err?.error?.message ?? 'Failed to create product';
-        },
+        error: handleError
       });
     }
   }

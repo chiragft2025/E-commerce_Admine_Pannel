@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryService } from '../../services/category';
 import { Category } from '../../models/categories.model';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-category-form',
@@ -16,6 +17,8 @@ export class CategoryForm implements OnInit {
   form!: FormGroup;
   id?: number;
   isEdit = false;
+  saving = false;
+  serverErrorMessage = ''; // general error
 
   constructor(
     private fb: FormBuilder,
@@ -44,16 +47,39 @@ export class CategoryForm implements OnInit {
       return;
     }
 
+    this.saving = true;
+    this.serverErrorMessage = '';
+
     const model = this.form.value;
 
+    const onSuccess = () => {
+      this.saving = false;
+      this.router.navigateByUrl('/categories');
+    };
+
+    const onError = (err: HttpErrorResponse) => {
+      this.saving = false;
+
+      // backend returns BadRequest("Category title already exists")
+      // err.error may be a string or object depending on server; normalize it:
+      const msg = (typeof err.error === 'string') ? err.error : (err.error?.message || JSON.stringify(err.error));
+
+      // If this is the duplicate-title error, mark the title control with a 'duplicate' error
+      if (err.status === 400 && msg && msg.toLowerCase().includes('title') && msg.toLowerCase().includes('exists')) {
+        this.form.get('title')?.setErrors({ duplicate: true });
+        // ensure it's visible
+        this.form.get('title')?.markAsTouched();
+        return;
+      }
+
+      // otherwise show a generic server error
+      this.serverErrorMessage = msg || 'An unexpected error occurred';
+    };
+
     if (this.isEdit) {
-      this.cs.update(this.id!, model).subscribe(() => {
-        this.router.navigateByUrl('/categories');
-      });
+      this.cs.update(this.id!, model).subscribe({ next: onSuccess, error: onError });
     } else {
-      this.cs.create(model).subscribe(() => {
-        this.router.navigateByUrl('/categories');
-      });
+      this.cs.create(model).subscribe({ next: onSuccess, error: onError });
     }
   }
 

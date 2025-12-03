@@ -8,7 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth';
 import { Subject, forkJoin, of } from 'rxjs';
 import { takeUntil, catchError } from 'rxjs/operators';
-import {RoleDto} from '../../models/role.model';
+import { RoleDto } from '../../models/role.model';
 
 @Component({
   selector: 'app-user-role-manage',
@@ -69,8 +69,12 @@ export class UserRoleManage implements OnInit, OnDestroy {
   }
 
   private normalizeRole(r: RoleDto): RoleDto {
-    // ensure id is a number (defensive)
-    return { ...r, id: r.id != null ? Number(r.id) : r.id } as RoleDto;
+    // ensure id is a number (defensive) and keep name normalized for fallback matching
+    return {
+      ...r,
+      id: r.id != null ? Number(r.id) : r.id,
+      name: r.name ? String(r.name).trim() : r.name
+    } as RoleDto;
   }
 
   private loadData() {
@@ -80,7 +84,6 @@ export class UserRoleManage implements OnInit, OnDestroy {
     const roles$ = this.roleService.list().pipe(
       catchError(err => {
         console.error('Failed to load roles', err);
-        // return empty array so UI can still show user info
         return of([] as RoleDto[]);
       })
     );
@@ -88,7 +91,6 @@ export class UserRoleManage implements OnInit, OnDestroy {
     const user$ = this.us.get(this.userId).pipe(
       catchError(err => {
         console.error('Failed to load user', err);
-        // bubble error by returning null
         return of(null as User | null);
       })
     );
@@ -97,24 +99,76 @@ export class UserRoleManage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ([roles, user]) => {
-          // normalize role ids to numbers to avoid string/number mismatch
+          // Normalize available roles and build fast lookup maps
           this.availableRoles = (roles || []).map(r => this.normalizeRole(r));
+
+          // Build helper maps: id -> role, lower-name -> role
+          const roleById = new Map<number, RoleDto>();
+          const roleByNameLower = new Map<string, RoleDto>();
+          this.availableRoles.forEach(r => {
+            if (r.id != null && !Number.isNaN(Number(r.id))) roleById.set(Number(r.id), r);
+            if (r.name) roleByNameLower.set(String(r.name).toLowerCase(), r);
+          });
 
           if (!user) {
             this.error = 'User not found.';
             this.loading = false;
             return;
           }
+
           this.user = user;
 
-          // prefill selection from roleIds or roles[]
+          // Clear previous selection
           this.selectedRoleIdsSet.clear();
-          if (user.roleIds && user.roleIds.length) {
-            user.roleIds.forEach(id => this.selectedRoleIdsSet.add(Number(id)));
-          } else if (Array.isArray(user.roles)) {
-            (user.roles as RoleDto[]).forEach(r => {
-              if (r && r.id != null) this.selectedRoleIdsSet.add(Number(r.id));
+
+          // 1) If user.roleIds is an array of ids (numbers or strings), prefer that
+          if (Array.isArray((user as any).roleIds) && (user as any).roleIds.length) {
+            (user as any).roleIds.forEach((rid: any) => {
+              const n = Number(rid);
+              if (!Number.isNaN(n) && roleById.has(n)) this.selectedRoleIdsSet.add(n);
             });
+          }
+          // 2) Else if user.roles is an array of objects, try to pull id/roleId/name
+          else if (Array.isArray((user as any).roles) && (user as any).roles.length) {
+            (user as any).roles.forEach((rObj: any) => {
+              if (rObj == null) return;
+              // try several common property names for id
+              const maybeId = rObj.id ?? rObj.roleId ?? rObj.RoleId ?? null;
+              if (maybeId != null) {
+                const n = Number(maybeId);
+                if (!Number.isNaN(n) && roleById.has(n)) {
+                  this.selectedRoleIdsSet.add(n);
+                  return;
+                }
+              }
+              // if no id, try to match by name (case-insensitive)
+              const maybeName = rObj.name ?? rObj.roleName ?? rObj.title ?? null;
+              if (maybeName) {
+                const found = roleByNameLower.get(String(maybeName).toLowerCase());
+                if (found && found.id != null) this.selectedRoleIdsSet.add(Number(found.id));
+              }
+            });
+          }
+          // 3) Else if user.roles is array of strings (role names)
+          else if (Array.isArray((user as any).roles) && (user as any).roles.length && typeof (user as any).roles[0] === 'string') {
+            (user as any).roles.forEach((name: string) => {
+              const found = roleByNameLower.get(String(name).toLowerCase());
+              if (found && found.id != null) this.selectedRoleIdsSet.add(Number(found.id));
+            });
+          }
+
+          // 4) As a final attempt: if selection is still empty but user contains a single roleId-like prop
+          if (this.selectedRoleIdsSet.size === 0) {
+            const singleRid = (user as any).roleId ?? (user as any).defaultRoleId ?? null;
+            if (singleRid != null) {
+              const n = Number(singleRid);
+              if (!Number.isNaN(n) && roleById.has(n)) this.selectedRoleIdsSet.add(n);
+            }
+          }
+
+          // DEBUG: if nothing matched, log to console to aid diagnosis
+          if (this.selectedRoleIdsSet.size === 0) {
+            console.debug('ManageRoles: no selected roles initialized. user payload:', user, 'availableRoles:', this.availableRoles);
           }
 
           this.loading = false;
@@ -166,7 +220,7 @@ export class UserRoleManage implements OnInit, OnDestroy {
             this.user = u;
             // keep UI selection in sync (rebuild set)
             this.selectedRoleIdsSet.clear();
-            if (u?.roleIds?.length) u.roleIds.forEach(id => this.selectedRoleIdsSet.add(Number(id)));
+            if (u?.roleIds?.length) u.roleIds.forEach((id: any) => this.selectedRoleIdsSet.add(Number(id)));
           });
 
           // navigate back to users list or show a message

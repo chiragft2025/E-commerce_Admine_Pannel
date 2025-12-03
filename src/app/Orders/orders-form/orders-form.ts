@@ -27,8 +27,10 @@ import { Customer } from '../../models/customers.model';
 export class OrderForm implements OnInit, OnDestroy {
   form!: FormGroup;
   customers: any[] = [];
+  products: Product[] = [];
   loading = false;
   loadingCustomers = false;
+  loadingProducts = false;
   saving = false;
   error: string | null = null;
   private destroy$ = new Subject<void>();
@@ -48,10 +50,8 @@ export class OrderForm implements OnInit, OnDestroy {
       items: this.fb.array([])
     });
 
-    // load customers for dropdown
     this.loadCustomers();
-
-    // add initial one item row
+    this.loadProducts();
     this.addItem();
   }
 
@@ -60,25 +60,51 @@ export class OrderForm implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-private loadCustomers() {
-  this.loadingCustomers = true;
+  private loadCustomers() {
+    this.loadingCustomers = true;
+    this.cs.listPaged?.(undefined, 1, 1000)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(err => {
+          console.error('Failed to load customers', err);
+          this.error = 'Failed to load customers. Try again later.';
+          return of({ items: [], total: 0, page: 1, pageSize: 0 } as Paged<Customer>);
+        })
+      )
+      .subscribe((paged: Paged<Customer>) => {
+        this.customers = paged.items || [];
+        this.loadingCustomers = false;
+      });
+  }
 
-  // request many customers (pageSize large to approximate "all")
-  this.cs.listPaged(undefined, 1, 1000)
-    .pipe(
+  private loadProducts() {
+    this.loadingProducts = true;
+    const obs = (this.ps.listPaged?.() ?? this.ps.listPaged?.(undefined, 1, 1000));
+    if (!obs) {
+      this.loadingProducts = false;
+      return;
+    }
+
+    obs.pipe(
       takeUntil(this.destroy$),
       catchError(err => {
-        console.error('Failed to load customers', err);
-        this.error = 'Failed to load customers. Try again later.';
-        // return an empty paged result so subscribe next runs
-        return of({ items: [], total: 0, page: 1, pageSize: 0 } as Paged<Customer>);
+        console.error('Failed to load products', err);
+        this.loadingProducts = false;
+        return of([] as Product[]);
       })
-    )
-    .subscribe((paged: Paged<Customer>) => {
-      this.customers = paged.items || [];
-      this.loadingCustomers = false;
+    ).subscribe((res: any) => {
+      if (!res) {
+        this.products = [];
+      } else if (Array.isArray(res)) {
+        this.products = res;
+      } else if (Array.isArray(res.items)) {
+        this.products = res.items;
+      } else {
+        this.products = Array.isArray(res.data) ? res.data : [];
+      }
+      this.loadingProducts = false;
     });
-}
+  }
 
   get itemsArr(): FormArray {
     return this.form.get('items') as FormArray;
@@ -96,13 +122,31 @@ private loadCustomers() {
     const productIdControl = fg.get('productId');
     if (productIdControl) {
       productIdControl.valueChanges
-        .pipe(debounceTime(300), takeUntil(this.destroy$))
+        .pipe(debounceTime(200), takeUntil(this.destroy$))
         .subscribe((pid: number | null) => {
           if (!pid) {
             fg.patchValue({ productName: '', unitPrice: 0, stock: 0 }, { emitEvent: false });
             return;
           }
 
+          // Try to find selected product in the already-loaded products list
+          const local = this.products.find(p => p.id === pid);
+          if (local) {
+            fg.patchValue(
+              { productName: local.name ?? '', unitPrice: local.price ?? 0, stock: local.stock ?? 0 },
+              { emitEvent: false }
+            );
+            // clear any custom quantity-stock error
+            const qtyCtrl = fg.get('quantity');
+            if (qtyCtrl && qtyCtrl.errors && qtyCtrl.errors['exceedsStock']) {
+              const errs = { ...(qtyCtrl.errors || {}) };
+              delete errs['exceedsStock'];
+              qtyCtrl.setErrors(Object.keys(errs).length ? errs : null);
+            }
+            return;
+          }
+
+          // fallback: fetch single product by id
           this.ps.get(pid).pipe(takeUntil(this.destroy$)).subscribe({
             next: (p: Product) => {
               fg.patchValue(
@@ -118,6 +162,23 @@ private loadCustomers() {
         }, (err) => {
           console.error('valueChanges error', err);
         });
+    }
+
+    // When quantity changes, ensure it doesn't exceed stock (set custom error 'exceedsStock')
+    const qtyCtrl = fg.get('quantity');
+    if (qtyCtrl) {
+      qtyCtrl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+        const q = Number(fg.get('quantity')!.value) || 0;
+        const stock = Number(fg.get('stock')!.value) || 0;
+        if (q > stock) {
+          const existing = fg.get('quantity')!.errors || {};
+          fg.get('quantity')!.setErrors({ ...existing, exceedsStock: true });
+        } else {
+          const existing = fg.get('quantity')!.errors || {};
+          if (existing['exceedsStock']) delete existing['exceedsStock'];
+          fg.get('quantity')!.setErrors(Object.keys(existing).length ? existing : null);
+        }
+      });
     }
 
     this.itemsArr.push(fg);
@@ -137,15 +198,49 @@ private loadCustomers() {
 
   submit() {
     this.error = null;
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
+    // mark all to show validation messages
+    this.form.markAllAsTouched();
+
+    // customer required
+    if (!this.form.value.customerId) {
+      this.error = 'Customer is required.';
+      return;
+    }
+
+    // at least one item
+    if (this.itemsArr.length === 0) {
+      this.error = 'At least one product is required.';
+      return;
+    }
+
+    // validate each item and detect duplicate product ids
+    const seen = new Set<number>();
     for (const c of this.itemsArr.controls) {
-      const qty = Number(c.get('quantity')!.value) || 0;
-      const stock = Number(c.get('stock')!.value) || 0;
-      if (qty > stock) {
-        this.error = `Insufficient stock for ${c.get('productName')!.value || 'product'}`;
+      const pid = c.get('productId')!.value;
+      const qty = Number(c.get('quantity')!.value);
+      const stock = Number(c.get('stock')!.value);
+
+      if (!pid) {
+        this.error = 'Each item must have a selected product.';
         return;
       }
+
+      if (!qty || qty < 1) {
+        this.error = 'Quantity must be at least 1.';
+        return;
+      }
+
+      if (qty > stock) {
+        this.error = `Insufficient stock for ${c.get('productName')!.value || 'product'}.`;
+        return;
+      }
+
+      if (seen.has(pid)) {
+        this.error = 'Duplicate product in order. Remove or combine quantities.';
+        return;
+      }
+      seen.add(pid);
     }
 
     const payload = {
@@ -160,7 +255,11 @@ private loadCustomers() {
     this.saving = true;
     this.os.create(payload).pipe(takeUntil(this.destroy$)).subscribe({
       next: () => { this.saving = false; this.router.navigateByUrl('/orders'); },
-      error: (err) => { this.saving = false; this.error = err?.error?.message ?? 'Failed to create order'; console.error(err); }
+      error: (err) => {
+        this.saving = false;
+        this.error = err?.error?.message ?? 'Failed to create order';
+        console.error(err);
+      }
     });
   }
 
