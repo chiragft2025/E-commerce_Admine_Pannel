@@ -1,73 +1,177 @@
-/* users.component.scss */
+/* users.component.scss
+   Responsive component styles for Users
+   Matches the structure and tokens used in categories.component.scss
+*/
 
-/* Theme tokens */
-$card-radius: 12px;
+/* Local tokens (match category styles) */
+$card-radius: 0.75rem; // 12px
 $card-border: rgba(15,23,42,0.04);
 $card-shadow: 0 8px 30px rgba(16,24,40,0.06);
+$break-md: 768px;
+$break-lg: 900px;
 
-/* Header actions */
-.page-header {
-  .actions { min-width: 320px; }
-}
+.users-page {
+  padding: 1rem;
 
-/* Table styling */
-.users-table {
-  background: #fff;
-  border-radius: $card-radius;
-  border: 1px solid $card-border;
-  box-shadow: $card-shadow;
-  overflow: hidden;
+  /* Header */
+  .page-header {
+    gap: 0.5rem;
 
-  thead th { border-bottom: 1px solid #e9edf2; }
-  td, th { vertical-align: middle; padding: .75rem 1rem; }
+    .title-block {
+      h2 {
+        margin: 0;
+        font-weight: 700;
+        color: #0b1220;
+      }
+    }
 
-  tbody tr:hover { background: #fbfdff; }
-}
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+    }
 
-/* No-items card */
-.no-users-found {
-  border-radius: $card-radius;
-  border: 1px solid $card-border;
-  background: #fff;
-  box-shadow: $card-shadow;
-}
+    .search-wrapper {
+      min-width: 0; // critical so input shrinks on small screens
+    }
 
-/* Responsive stacked-table for small screens */
-@media (max-width: 900px) {
-  .users-table thead { display: none; }
-  .users-table, tbody, tr, td { display: block; width: 100%; }
-  .users-table tbody tr {
-    margin-bottom: 1rem;
-    border: 1px solid rgba(15,23,42,0.06);
-    border-radius: 8px;
+    /* Buttons helper: full width on extra-small, auto on sm+ */
+    .w-sm-auto {
+      width: auto !important;
+    }
+  }
+
+  /* Table card look */
+  .users-table {
+    background: #fff;
+    border-radius: $card-radius;
+    border: 1px solid $card-border;
+    box-shadow: $card-shadow;
     overflow: hidden;
+    width: 100%;
+    border-collapse: collapse;
+
+    thead th {
+      text-align: left;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e9edf2;
+      background: #fbfdff;
+    }
+
+    tbody {
+      tr {
+        transition: background-color 120ms ease;
+        &:hover { background: #fbfdff; }
+      }
+
+      td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+
+        &.actions {
+          display: flex;
+          gap: 0.5rem;
+          justify-content: flex-end;
+        }
+      }
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
   }
-  .users-table tbody td {
-    text-align: right;
-    padding-left: 50%;
-    position: relative;
-    border-bottom: 1px solid #f1f5f9;
+
+  /* Empty state */
+  .no-users-found {
+    background: #fff;
+    border-radius: $card-radius;
+    border: 1px solid $card-border;
+    box-shadow: $card-shadow;
   }
-  .users-table tbody td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 1rem;
-    width: calc(50% - 2rem);
-    text-align: left;
-    font-weight: 600;
-    color: #334155;
-  }
-  .users-table td[data-label="Actions"] {
-    text-align: left;
-    padding-left: 1rem;
-    border-bottom: none;
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-top: .5rem;
-    padding-bottom: .5rem;
+
+  /* Pagination & info */
+  .pagination-info {
+    color: #64748b;
   }
 }
 
-/* Tiny tweaks for controls */
-.form-control-sm { min-width: 160px; }
+/* ----------------
+   Mobile stacked table (for narrower screens)
+   ---------------- */
+@media (max-width: $break-lg) {
+  .users-table {
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+
+    tbody tr {
+      margin-bottom: 1rem;
+      border: 1px solid rgba(15,23,42,0.06);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    tbody td {
+      position: relative;
+      padding: 0.75rem 1rem;
+      padding-left: 50%;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9;
+      min-height: 2.25rem;
+
+      &::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        width: calc(50% - 2rem);
+        text-align: left;
+        font-weight: 600;
+        color: #334155;
+        top: 50%;
+        transform: translateY(-50%);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    td[data-label="Actions"] {
+      text-align: left;
+      padding-left: 1rem;
+      border-bottom: none;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+  }
+}
+
+/* ----------------
+   Small-screen header tweaks (stack controls)
+   ---------------- */
+@media (max-width: 576px) {
+  .page-header {
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+
+      .w-sm-auto { width: 100% !important; } // ensure buttons full width on xs
+    }
+  }
+}
+
+/* focus ring accessibility */
+.users-page :focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(14,165,233,0.08);
+}
+
+/* Small tweaks for controls */
+.form-control-sm {
+  min-width: 160px;
+}
+
+/* end */

@@ -1,85 +1,172 @@
-/* categories.component.scss */
+/* categories.component.scss
+   Responsive component styles for Categories
+   Designed to work with src/styles.scss global tokens
+*/
 
-/* Keep small theme tokens; adjust if you use global variables */
-$card-radius: 12px;
-$card-border: rgba(15, 23, 42, 0.04);
-$card-shadow: 0 8px 30px rgba(16, 24, 40, 0.06);
+/* Local tokens */
+$card-radius: 0.75rem; // 12px
+$card-border: rgba(15,23,42,0.04);
+$card-shadow: 0 8px 30px rgba(16,24,40,0.06);
+$break-md: 768px;
+$break-lg: 900px;
 
-/* Page header */
-.page-header {
-  .actions {
-    display: flex;
+.categories-page {
+  padding: 1rem;
+
+  /* Header */
+  .page-header {
     gap: 0.5rem;
-    align-items: center;
-  }
-}
 
-/* Table card look (optional) */
-.category-table {
-  background: #fff;
-  border-radius: $card-radius;
-  border: 1px solid $card-border;
-  box-shadow: $card-shadow;
-  overflow: hidden;
+    .title-block {
+      h2 {
+        margin: 0;
+        font-weight: 700;
+        color: #0b1220;
+      }
+    }
 
-  thead th {
-    border-bottom: 1px solid #e9edf2;
-  }
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+    }
 
-  tbody tr {
-    &:hover {
-      background: #fbfdff;
+    .search-wrapper {
+      min-width: 0; // critical so input shrinks on small screens
+    }
+
+    /* Buttons helper: full width on extra-small, auto on sm+ */
+    .w-sm-auto {
+      width: auto !important;
     }
   }
 
-  td, th {
-    vertical-align: middle;
-    padding: 0.75rem 1rem;
-  }
-}
-
-/* Responsive stacked-table for small screens */
-/* This mirrors your previous behavior but scoped to this component */
-@media (max-width: 900px) {
-  .category-table thead { display: none; }
-
-  .category-table, tbody, tr, td {
-    display: block;
-    width: 100%;
-  }
-
-  .category-table tbody tr {
-    margin-bottom: 1rem;
-    border: 1px solid rgba(15,23,42,0.06);
-    border-radius: 8px;
+  /* Table card look */
+  .category-table {
+    background: #fff;
+    border-radius: $card-radius;
+    border: 1px solid $card-border;
+    box-shadow: $card-shadow;
     overflow: hidden;
+    width: 100%;
+    border-collapse: collapse;
+
+    thead th {
+      text-align: left;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e9edf2;
+      background: #fbfdff;
+    }
+
+    tbody {
+      tr {
+        transition: background-color 120ms ease;
+        &:hover { background: #fbfdff; }
+      }
+
+      td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+
+        &.actions {
+          display: flex;
+          gap: 0.5rem;
+          justify-content: flex-end;
+        }
+      }
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
   }
 
-  .category-table tbody td {
-    text-align: right;
-    padding-left: 50%;
-    position: relative;
-    border-bottom: 1px solid #f1f5f9;
+  /* Empty state */
+  .no-categories-found {
+    background: #fff;
+    border-radius: $card-radius;
+    border: 1px solid $card-border;
+    box-shadow: $card-shadow;
   }
 
-  .category-table tbody td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 1rem;
-    width: calc(50% - 2rem);
-    text-align: left;
-    font-weight: 600;
-    color: #334155;
-  }
-
-  .category-table td[data-label="Actions"] {
-    text-align: left;
-    padding-left: 1rem;
-    border-bottom: none;
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-top: .5rem;
-    padding-bottom: .5rem;
+  /* Pagination & info */
+  .pagination-info {
+    color: #64748b;
   }
 }
+
+/* ----------------
+   Mobile stacked table (for narrower screens)
+   ---------------- */
+@media (max-width: $break-lg) {
+  .category-table {
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+
+    tbody tr {
+      margin-bottom: 1rem;
+      border: 1px solid rgba(15,23,42,0.06);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    tbody td {
+      position: relative;
+      padding: 0.75rem 1rem;
+      padding-left: 50%;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9;
+      min-height: 2.25rem;
+
+      &::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        width: calc(50% - 2rem);
+        text-align: left;
+        font-weight: 600;
+        color: #334155;
+        top: 50%;
+        transform: translateY(-50%);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    td[data-label="Actions"] {
+      text-align: left;
+      padding-left: 1rem;
+      border-bottom: none;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+  }
+}
+
+/* ----------------
+   Small-screen header tweaks (stack controls)
+   ---------------- */
+@media (max-width: 576px) {
+  .page-header {
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+
+      .w-sm-auto { width: 100% !important; } // ensure buttons full width on xs
+    }
+  }
+}
+
+/* focus ring accessibility */
+.categories-page :focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(14,165,233,0.08);
+}
+
+/* end */

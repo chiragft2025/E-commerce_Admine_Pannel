@@ -1,23 +1,37 @@
-<div class="container py-3">
-  <div class="page-header d-flex align-items-center justify-content-between mb-3">
-    <h2 class="mb-0">Users</h2>
+<div class="container py-3 users-page">
+  <!-- Page header (responsive) -->
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-3 gap-2">
+    <!-- Title -->
+    <div class="title-block d-flex align-items-center w-100">
+      <h2 class="mb-0">Users</h2>
+    </div>
 
-    <div class="actions d-flex align-items-center gap-2">
-      <input
-        class="form-control form-control-sm"
-        placeholder="Search by name or email..."
-        [(ngModel)]="search"
-        (keyup.enter)="onEnter()"
-        aria-label="Search users"
-      />
+    <!-- Controls (search + buttons) -->
+    <div class="controls d-flex flex-column flex-sm-row gap-2 align-items-stretch w-100 w-md-auto">
+      <!-- Search input wrapper ensures proper shrinking -->
+      <div class="search-wrapper flex-grow-1" style="min-width:0;">
+        <input
+          class="form-control form-control-sm"
+          placeholder="Search by name or email..."
+          [(ngModel)]="search"
+          (keyup.enter)="onEnter()"
+          aria-label="Search users"
+        />
+      </div>
 
-      <button class="btn btn-sm btn-outline-secondary" (click)="load(search)" aria-label="Search">
+      <!-- Search button -->
+      <button
+        class="btn btn-sm btn-outline-secondary w-100 w-sm-auto"
+        (click)="load(search)"
+        aria-label="Search"
+      >
         <i class="bi bi-search"></i>
       </button>
 
+      <!-- Add User button -->
       <button
         *appHasPermission="'User.Manage'"
-        class="btn btn-sm btn-primary"
+        class="btn btn-sm btn-primary w-100 w-sm-auto"
         (click)="add()"
         aria-label="Add user"
       >
@@ -26,20 +40,22 @@
     </div>
   </div>
 
+  <!-- Loading spinner -->
   <div *ngIf="loading" class="text-center my-4">
     <div class="spinner-border" role="status" aria-hidden="true"></div>
     <div class="visually-hidden">Loading…</div>
   </div>
 
+  <!-- Table or empty state -->
   <div *ngIf="!loading && users?.length; else empty" class="table-responsive">
     <table class="table table-hover align-middle users-table mb-0">
       <thead class="table-light">
         <tr>
-          <th>Username</th>
-          <th>Email</th>
-          <th class="text-center">Active</th>
-          <th>Roles</th>
-          <th class="text-end" *appHasPermission="'User.Manage'">Actions</th>
+          <th scope="col">Username</th>
+          <th scope="col">Email</th>
+          <th scope="col" class="text-center">Active</th>
+          <th scope="col">Roles</th>
+          <th scope="col" class="text-end" *appHasPermission="'User.Manage'">Actions</th>
         </tr>
       </thead>
 
@@ -50,8 +66,8 @@
           <td data-label="Active" class="text-center">{{ u.isActive ? 'Yes' : 'No' }}</td>
           <td data-label="Roles">{{ displayRoles(u) }}</td>
 
-          <td class="text-end" data-label="Actions" *appHasPermission="'User.Manage'">
-            <div class="btn-group btn-group-sm" role="group" aria-label="User actions" >
+          <td data-label="Actions" class="text-end" *appHasPermission="'User.Manage'">
+            <div class="btn-group btn-group-sm" role="group" aria-label="User actions">
               <button
                 class="btn btn-outline-primary"
                 (click)="edit(u)"
@@ -85,6 +101,7 @@
     </table>
   </div>
 
+  <!-- Empty template -->
   <ng-template #empty>
     <div class="no-users-found card p-3 text-center text-muted mt-3">
       No users found.
@@ -95,12 +112,14 @@
   <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4">
     <div class="btn-group btn-group-sm" role="group" aria-label="Page navigation">
       <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
+
+      <!-- Keep simple page indicator to match current component pagination vars -->
       <button class="btn btn-outline-secondary" disabled>Page {{ page }} of {{ pageCount }}</button>
+
       <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === pageCount">Next</button>
     </div>
 
-    <div class="pagination-info text-muted small">
-      <!-- start index -->
+    <div class="pagination-info text-muted small mt-2 mt-md-0">
       <ng-container *ngIf="total > 0; else noTotal">
         Showing
         {{ ((page - 1) * pageSize) + 1 }}

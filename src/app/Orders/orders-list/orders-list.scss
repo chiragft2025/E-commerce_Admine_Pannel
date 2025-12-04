@@ -1,97 +1,184 @@
-/* orders.component.scss */
+/* orders.component.scss
+   Responsive component styles for Orders
+   Matches structure and tokens used in categories.component.scss
+*/
 
-/* Theme tokens (use global ones if available) */
-$card-radius: 12px;
+/* Local tokens (match category styles) */
+$card-radius: 0.75rem; // 12px
 $card-border: rgba(15,23,42,0.04);
 $card-shadow: 0 8px 30px rgba(16,24,40,0.06);
+$break-md: 768px;
+$break-lg: 900px;
 
-/* Page header */
-.page-header {
-  .actions {
-    display: flex;
-    gap: .5rem;
-    align-items: center;
-  }
-}
+.orders-page {
+  padding: 1rem;
 
-/* Table card look */
-.orders-table {
-  background: #fff;
-  border-radius: $card-radius;
-  border: 1px solid $card-border;
-  box-shadow: $card-shadow;
-  overflow: hidden;
+  /* Header */
+  .page-header {
+    gap: 0.5rem;
 
-  thead th {
-    border-bottom: 1px solid #e9edf2;
-  }
+    .title-block {
+      h3, h2 {
+        margin: 0;
+        font-weight: 700;
+        color: #0b1220;
+      }
+    }
 
-  tbody tr:hover {
-    background: #fbfdff;
-  }
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+    }
 
-  td, th {
-    vertical-align: middle;
-    padding: .75rem 1rem;
-  }
+    .search-wrapper {
+      min-width: 0; // critical so input shrinks on small screens
+    }
 
-  td[data-label="Total"] {
-    font-weight: 600;
-  }
-}
-
-/* Empty card */
-.no-orders-found {
-  border-radius: $card-radius;
-  border: 1px solid $card-border;
-  background: #fff;
-  box-shadow: $card-shadow;
-}
-
-/* Responsive stacked-table for small screens */
-@media (max-width: 900px) {
-  .orders-table thead { display: none; }
-
-  .orders-table, tbody, tr, td {
-    display: block;
-    width: 100%;
+    /* Buttons helper: full width on extra-small, auto on sm+ */
+    .w-sm-auto {
+      width: auto !important;
+    }
   }
 
-  .orders-table tbody tr {
-    margin-bottom: 1rem;
-    border: 1px solid rgba(15,23,42,0.06);
-    border-radius: 8px;
+  /* Table card look */
+  .orders-table {
+    background: #fff;
+    border-radius: $card-radius;
+    border: 1px solid $card-border;
+    box-shadow: $card-shadow;
     overflow: hidden;
+    width: 100%;
+    border-collapse: collapse;
+
+    thead th {
+      text-align: left;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e9edf2;
+      background: #fbfdff;
+    }
+
+    tbody {
+      tr {
+        transition: background-color 120ms ease;
+        &:hover { background: #fbfdff; }
+      }
+
+      td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+
+        &.actions {
+          display: flex;
+          gap: 0.5rem;
+          justify-content: flex-end;
+        }
+      }
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* special cell weight for totals */
+    td[data-label="Total"], td[data-label="Amount"], td.total {
+      font-weight: 600;
+    }
   }
 
-  .orders-table tbody td {
-    text-align: right;
-    padding-left: 50%;
-    position: relative;
-    border-bottom: 1px solid #f1f5f9;
+  /* Empty state */
+  .no-orders-found {
+    background: #fff;
+    border-radius: $card-radius;
+    border: 1px solid $card-border;
+    box-shadow: $card-shadow;
   }
 
-  .orders-table tbody td::before {
-    content: attr(data-label);
-    position: absolute;
-    left: 1rem;
-    width: calc(50% - 2rem);
-    text-align: left;
-    font-weight: 600;
-    color: #334155;
-  }
-
-  .orders-table td[data-label="Actions"] {
-    text-align: left;
-    padding-left: 1rem;
-    border-bottom: none;
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-top: .5rem;
-    padding-bottom: .5rem;
+  /* Pagination & info */
+  .pagination-info {
+    color: #64748b;
   }
 }
 
-/* Small tweaks */
-.pagination-info { margin-left: .5rem; }
+/* ----------------
+   Mobile stacked table (for narrower screens)
+   ---------------- */
+@media (max-width: $break-lg) {
+  .orders-table {
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+
+    tbody tr {
+      margin-bottom: 1rem;
+      border: 1px solid rgba(15,23,42,0.06);
+      border-radius: 0.5rem;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    tbody td {
+      position: relative;
+      padding: 0.75rem 1rem;
+      padding-left: 50%;
+      text-align: right;
+      border-bottom: 1px solid #f1f5f9;
+      min-height: 2.25rem;
+
+      &::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        width: calc(50% - 2rem);
+        text-align: left;
+        font-weight: 600;
+        color: #334155;
+        top: 50%;
+        transform: translateY(-50%);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    td[data-label="Actions"] {
+      text-align: left;
+      padding-left: 1rem;
+      border-bottom: none;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    /* ensure total/amount remains visually prominent on small screens */
+    td[data-label="Total"], td[data-label="Amount"], td.total {
+      text-align: right;
+      padding-left: 50%;
+      &::before { font-weight: 600; }
+    }
+  }
+}
+
+/* ----------------
+   Small-screen header tweaks (stack controls)
+   ---------------- */
+@media (max-width: 576px) {
+  .page-header {
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+
+      .w-sm-auto { width: 100% !important; } // ensure buttons full width on xs
+    }
+  }
+}
+
+/* focus ring accessibility */
+.orders-page :focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(14,165,233,0.08);
+}
+
+/* end */

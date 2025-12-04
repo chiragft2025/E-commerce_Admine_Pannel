@@ -1,23 +1,37 @@
-<div class="container py-3">
-  <div class="page-header d-flex align-items-center justify-content-between mb-3">
-    <h3 class="mb-0">Customers</h3>
+<div class="container py-3 customers-page">
+  <!-- Page header (responsive) -->
+  <div class="page-header d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between mb-3 gap-2">
+    <!-- Title -->
+    <div class="title-block d-flex align-items-center w-100">
+      <h3 class="mb-0">Customers</h3>
+    </div>
 
-    <div class="actions d-flex align-items-center gap-2">
-      <input
-        class="form-control form-control-sm"
-        placeholder="Search by name or email..."
-        [(ngModel)]="q"
-        (keyup.enter)="onSearch()"
-        aria-label="Search customers"
-      />
+    <!-- Controls (search + buttons) -->
+    <div class="controls d-flex flex-column flex-sm-row gap-2 align-items-stretch w-100 w-md-auto">
+      <!-- Search input wrapper ensures proper shrinking -->
+      <div class="search-wrapper flex-grow-1" style="min-width:0;">
+        <input
+          class="form-control form-control-sm"
+          placeholder="Search by name or email..."
+          [(ngModel)]="q"
+          (keyup.enter)="onSearch()"
+          aria-label="Search customers"
+        />
+      </div>
 
-      <button class="btn btn-sm btn-outline-secondary" (click)="onSearch()">
+      <!-- Search button -->
+      <button
+        class="btn btn-sm btn-outline-secondary w-100 w-sm-auto"
+        (click)="onSearch()"
+        aria-label="Search"
+      >
         <i class="bi bi-search"></i>
       </button>
 
+      <!-- Add / New Customer button -->
       <button
         *appHasPermission="'Customer.Manage'"
-        class="btn btn-sm btn-primary"
+        class="btn btn-sm btn-primary w-100 w-sm-auto"
         (click)="add()"
         aria-label="New Customer"
       >
@@ -26,20 +40,21 @@
     </div>
   </div>
 
+  <!-- Loading spinner -->
   <div *ngIf="loading" class="text-center my-4">
     <div class="spinner-border" role="status" aria-hidden="true"></div>
-    <div class="visually-hidden">Loading…</div>
   </div>
 
+  <!-- Table or empty state -->
   <div *ngIf="!loading && customers?.length; else empty" class="table-responsive">
     <table class="table table-hover align-middle customers-table mb-0">
       <thead class="table-light">
         <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Address</th>
-          <th class="text-end" *appHasPermission="'Customer.Manage'" >Actions</th>
+          <th scope="col">Name</th>
+          <th scope="col">Email</th>
+          <th scope="col">Phone</th>
+          <th scope="col">Address</th>
+          <th scope="col" class="text-end" *appHasPermission="'Customer.Manage'">Actions</th>
         </tr>
       </thead>
 
@@ -49,7 +64,7 @@
           <td data-label="Email">{{ c.email }}</td>
           <td data-label="Phone">{{ c.phone }}</td>
           <td data-label="Address">{{ c.address }}</td>
-          <td class="text-end" data-label="Actions" *appHasPermission="'Customer.Manage'">
+          <td data-label="Actions" class="text-end" *appHasPermission="'Customer.Manage'">
             <div class="btn-group btn-group-sm" role="group" aria-label="Customer actions">
               <button
                 class="btn btn-outline-primary"
@@ -75,6 +90,7 @@
     </table>
   </div>
 
+  <!-- Empty template -->
   <ng-template #empty>
     <div class="no-customers-found card p-3 text-center text-muted mt-3">
       No customers found.
@@ -84,7 +100,7 @@
   <!-- Pagination -->
   <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4">
     <div class="btn-group btn-group-sm" role="group" aria-label="Page navigation">
-      <button class="btn btn-outline-secondary" (click)="goToPage(page-1)" [disabled]="page===1">Prev</button>
+      <button class="btn btn-outline-secondary" (click)="goToPage(page-1)" [disabled]="page === 1">Prev</button>
 
       <ng-container *ngFor="let p of [].constructor(pageCount); let i = index">
         <button
@@ -97,10 +113,10 @@
         </button>
       </ng-container>
 
-      <button class="btn btn-outline-secondary" (click)="goToPage(page+1)" [disabled]="page===pageCount">Next</button>
+      <button class="btn btn-outline-secondary" (click)="goToPage(page+1)" [disabled]="page === pageCount">Next</button>
     </div>
 
-    <div class="pagination-info text-muted small">
+    <div class="pagination-info text-muted small mt-2 mt-md-0">
       Page {{ page }} of {{ pageCount }} — {{ total }} items
     </div>
   </div>
