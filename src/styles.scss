@@ -34,7 +34,9 @@ $bp-xl: 1200px;
 @use "bootstrap" as *;
 
 // -------------------- Base --------------------
-html, body, app-root { height: 100%; }
+// Use min-height for app-root so content can grow (avoids some overflow traps)
+html, body { height: 100%; }
+app-root { min-height: 100%; display: block; }
 
 body {
   margin: 0;
@@ -45,6 +47,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.45;
   -webkit-font-feature-settings: "liga" 1;
+  /* Ensure body is scrollable on mobile by default */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* container spacing tuned for admin */
@@ -54,6 +59,7 @@ body {
   margin-left: auto;
   margin-right: auto;
   max-width: 1200px;
+  box-sizing: border-box;
 }
 
 // -------------------- Cards & Forms --------------------
@@ -133,7 +139,7 @@ button:hover:not(:disabled), .btn:hover:not(:disabled) {
 /* Validation */
 .error, .form-error, small { color: map-get($theme-colors, "danger"); font-size: .875rem; }
 
-// -------------------- Layout helpers --------------------
+ // -------------------- Layout helpers --------------------
 .text-center { text-align: center; }
 .mb-0 { margin-bottom: 0; }
 
@@ -194,13 +200,23 @@ button:hover:not(:disabled), .btn:hover:not(:disabled) {
 
 /* main content needs to grow and be scrollable */
 .main { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
-.content { flex: 1 1 auto; overflow:auto; padding: 1.5rem 0; }
 
-// -------------------- Tables (desktop + stacked mobile) --------------------
+/* Use momentum scrolling for the main content area and ensure it can scroll */
+.content {
+  flex: 1 1 auto;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: auto;
+  scrollbar-width: auto;
+  padding: 1.5rem 0;
+}
+
+/* -------------------- Tables (desktop + stacked mobile) -------------------- */
 table {
   border-collapse: collapse;
   overflow: hidden;
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* Default desktop table spacing */
@@ -220,11 +236,24 @@ tbody td {
 }
 
 /* Table card look */
-.table-responsive > .table {
-  background: #fff;
-  border-radius: $card-radius;
-  border: 1px solid $card-border;
-  box-shadow: $card-shadow;
+.table-responsive {
+  overflow-x: auto !important;               /* allow horizontal scroll when needed */
+  -webkit-overflow-scrolling: touch;         /* smooth/native momentum scrolling on iOS */
+  scrollbar-width: auto;                     /* firefox */
+}
+
+/* Ensure table and inner elements respect container width and don't force overflow */
+.table-responsive > .table,
+.table-responsive table,
+.table-responsive thead,
+.table-responsive tbody,
+.table-responsive tr,
+.table-responsive th,
+.table-responsive td {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0; /* important — prevents children from forcing horizontal scroll */
+  word-break: break-word;
 }
 
 /* Mobile stacked fallback (keeps data-label usage) */
@@ -233,9 +262,9 @@ tbody td {
 
   table, tbody, tr, td { display: block; width: 100%; }
   tbody tr { margin-bottom: 1rem; border: 1px solid rgba(15,23,42,0.06); border-radius: 8px; overflow: hidden; }
-  tbody td { text-align: right; padding-left: 50%; position: relative; border-bottom: 1px solid #f1f5f9; }
-  tbody td::before { content: attr(data-label); position: absolute; left: 1rem; width: calc(50% - 2rem); text-align: left; font-weight: 600; color: #334155; }
-  td[data-label="Actions"], .actions-col { text-align: left; padding-left: 1rem; border-bottom: none; display:flex; justify-content:flex-end; }
+  tbody td { text-align: right; padding-left: 50%; position: relative; border-bottom: 1px solid #f1f5f9; min-height: 2.25rem; }
+  tbody td::before { content: attr(data-label); position: absolute; left: 1rem; width: calc(50% - 2rem); text-align: left; font-weight: 600; color: #334155; top: 50%; transform: translateY(-50%); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td[data-label="Actions"], .actions-col { text-align: left; padding-left: 1rem; border-bottom: none; display:flex; justify-content:flex-end; gap: 8px; padding-top: .5rem; padding-bottom: .5rem; }
 }
 
 /* small screens table tweaks */
@@ -243,7 +272,7 @@ tbody td {
   thead th, tbody td { padding: .6rem .75rem; font-size: .9rem; }
 }
 
-// -------------------- Forms & small-screen stacks --------------------
+/* -------------------- Forms & small-screen stacks -------------------- */
 /* form rows should wrap gracefully */
 form .row { margin-left: -0.5rem; margin-right: -0.5rem; }
 form .row > [class*="col-"] { padding-left: .5rem; padding-right: .5rem; }
@@ -257,11 +286,11 @@ form .row > [class*="col-"] { padding-left: .5rem; padding-right: .5rem; }
   .btn { padding: .5rem .75rem; font-size: .95rem; }
 }
 
-// -------------------- Compact utilities --------------------
+/* -------------------- Compact utilities -------------------- */
 .small-muted { color: #64748b; font-size: .85rem; }
 .centered { margin-left:auto; margin-right:auto; text-align:center; }
 
-// -------------------- Specific component responsive tweaks --------------------
+/* -------------------- Specific component responsive tweaks -------------------- */
 /* role/user/permission cards - ensure checkbox sits inside */
 .role-item, .perm-item {
   display: flex;
@@ -287,7 +316,7 @@ form .row > [class*="col-"] { padding-left: .5rem; padding-right: .5rem; }
 .auth-page { min-height: calc(100vh - 56px); display:flex; align-items:center; justify-content:center; padding:2rem; }
 @media (max-width: $bp-sm) { .auth-page { padding:1.25rem; } .auth-card { padding: 18px; } }
 
-// -------------------- Footer --------------------
+/* -------------------- Footer -------------------- */
 .app-footer {
   background: transparent;
   color: #64748b;
@@ -296,17 +325,22 @@ form .row > [class*="col-"] { padding-left: .5rem; padding-right: .5rem; }
   border-top: 1px solid rgba(0,0,0,0.02);
 }
 
-// -------------------- Accessibility --------------------
+/* -------------------- Accessibility -------------------- */
 :focus { outline: none; }
 a:focus, button:focus, input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 4px rgba($brand-primary, 0.08);
 }
 
-// -------------------- Print rules --------------------
+/* -------------------- Print rules -------------------- */
 @media print {
   .sidebar, .topbar, .overlay, .btn, .actions { display: none !important; }
   .content { padding: 0 !important; }
   .card { box-shadow: none !important; border: 1px solid #ccc !important; }
 }
+
+/* Utilities (optional) - show native scrollbars a bit more visibly on webkit */
+::-webkit-scrollbar { height: 8px; width: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(15,23,42,0.12); border-radius: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 
 /* end of file */
