@@ -1,3 +1,5 @@
+#first Download BackedAPI project after that set environment link according it and then intall node modues using npm install
+
 # ECommerceAdminFrontend
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.8.
