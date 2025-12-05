@@ -91,14 +91,14 @@
       <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
 
       <!-- keep simple page indicator (matches your current pagination vars) -->
-      <button class="btn btn-outline-secondary" disabled>Page {{ page }} of {{ pageCount }}</button>
+      <button class="btn btn-primary activate">{{ page }}</button>
 
       <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === pageCount">Next</button>
     </div>
 
     <div class="pagination-info text-muted small mt-2 mt-md-0">
       <ng-container *ngIf="total > 0; else noTotal">
-        Showing {{ ((page - 1) * pageSize) + 1 }} – {{ ((page - 1) * pageSize) + (roles?.length || 0) }} of {{ total }}
+        Page  {{ ((page - 1) * pageSize) + 1 }} –  1 of {{ total }}
       </ng-container>
 
       <ng-template #noTotal>

@@ -114,17 +114,17 @@
       <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
 
       <!-- Keep simple page indicator to match current component pagination vars -->
-      <button class="btn btn-outline-secondary" disabled>Page {{ page }} of {{ pageCount }}</button>
+      <button class="btn btn-primary">{{ page }} </button>
 
       <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === pageCount">Next</button>
     </div>
 
     <div class="pagination-info text-muted small mt-2 mt-md-0">
       <ng-container *ngIf="total > 0; else noTotal">
-        Showing
+        Page
         {{ ((page - 1) * pageSize) + 1 }}
         –
-        {{ ((page - 1) * pageSize) + (users?.length || 0) }}
+        1
         of {{ total }}
       </ng-container>
 

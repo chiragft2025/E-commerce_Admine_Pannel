@@ -25,7 +25,7 @@ export class UserList implements OnInit, OnDestroy {
 
   // pagination
   page = 1;
-  pageSize = 9; // 9 items per page as requested
+  pageSize = 10; // 9 items per page as requested
   total = 0;
 
   // UI & search

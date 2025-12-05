@@ -50,7 +50,7 @@
     <table class="table table-hover align-middle orders-table mb-0">
       <thead class="table-light">
         <tr>
-          <th scope="col">ID</th>
+          <th scope="col">Number</th>
           <th scope="col">Placed</th>
           <th scope="col">Customer</th>
           <th scope="col">Status</th>
@@ -89,13 +89,13 @@
       <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
 
       <!-- keep simple page indicator (matches your existing component vars) -->
-      <button class="btn btn-outline-secondary" disabled>Page {{ page }} of {{ pageCount }}</button>
+      <button class="btn btn-primary">{{ page }}</button>
 
       <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === pageCount">Next</button>
     </div>
 
     <div class="pagination-info text-muted small mt-2 mt-md-0">
-      Showing {{ orders?.length || 0 }} orders — total {{ total ?? 'N/A' }}
+      Page {{ page }} of  1 — {{ total ?? 'N/A' }} items
     </div>
   </div>
 </div>

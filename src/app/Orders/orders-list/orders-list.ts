@@ -24,7 +24,7 @@ import {
 export class OrdersList implements OnInit, OnDestroy {
   orders: any[] = [];
   page = 1;
-  pageSize = 20;
+  pageSize = 10;
   total = 0;
   loading = false;
 
