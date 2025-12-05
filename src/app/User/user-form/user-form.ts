@@ -5,6 +5,9 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { UserService } from '../../services/UserService';
 import { RoleService } from '../../services/role.service';
 import { User, CreateUserRequest, UpdateUserRequest, Role } from '../../models/User.model';
+import Swal from 'sweetalert2';
+import { of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-user-form',
@@ -21,6 +24,15 @@ export class UserForm implements OnInit {
   loading = false;
   saving = false;
   errorList: string[] = [];
+
+  // toast helper
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2200,
+    timerProgressBar: true
+  });
 
   constructor(
     private fb: FormBuilder,
@@ -43,24 +55,19 @@ export class UserForm implements OnInit {
     // load roles first, then load user if editing
     this.rs.list().subscribe({
       next: (r) => {
-        // roles list must contain objects { id, name }
         this.roles = r ?? [];
-
-        // now check route for id and load user if necessary
         const idStr = this.route.snapshot.paramMap.get('id');
         if (idStr && idStr !== 'new') {
           this.id = Number(idStr);
           this.isEdit = true;
           this.loadUser(this.id);
         } else {
-          // create mode -> require password
           this.form.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
           this.form.get('password')?.updateValueAndValidity();
         }
       },
       error: (e) => {
         console.error('Failed to load roles', e);
-        // still try to load user (if editing) even if roles failed
         const idStr = this.route.snapshot.paramMap.get('id');
         if (idStr && idStr !== 'new') {
           this.id = Number(idStr);
@@ -73,10 +80,10 @@ export class UserForm implements OnInit {
 
   loadUser(id: number) {
     this.loading = true;
-    this.us.get(id).subscribe({
+    this.us.get(id).pipe(
+      finalize(() => (this.loading = false))
+    ).subscribe({
       next: (u) => {
-        // Determine roleIds:
-        // Case A: backend returns roleIds (number[])
         if (u.roleIds && u.roleIds.length) {
           this.form.patchValue({
             userName: u.userName,
@@ -85,10 +92,7 @@ export class UserForm implements OnInit {
             roleIds: u.roleIds.map(x => Number(x))
           });
         } else if (Array.isArray(u.roles) && u.roles.length) {
-          // Case B: backend returns roles as strings ["Admin","Manager"] OR as objects [{name, id}]
           const incoming = u.roles;
-
-          // If roles are strings -> map role name -> id using loaded this.roles
           if (typeof incoming[0] === 'string') {
             const names = (incoming as unknown as string[]).map(s => s?.toString()?.trim()).filter(s => !!s);
             const mappedIds = names
@@ -102,7 +106,6 @@ export class UserForm implements OnInit {
               roleIds: mappedIds
             });
           } else {
-            // roles are objects with { id, name }
             const mappedIds = (incoming as any[]).map(x => Number(x.id)).filter(n => !isNaN(n));
             this.form.patchValue({
               userName: u.userName,
@@ -112,7 +115,6 @@ export class UserForm implements OnInit {
             });
           }
         } else {
-          // No role info returned -> leave roleIds empty
           this.form.patchValue({
             userName: u.userName,
             email: u.email,
@@ -120,10 +122,8 @@ export class UserForm implements OnInit {
             roleIds: []
           });
         }
-
-        this.loading = false;
       },
-      error: (e) => { console.error('Failed to load user', e); this.loading = false; }
+      error: (e) => { console.error('Failed to load user', e); }
     });
   }
 
@@ -149,13 +149,53 @@ export class UserForm implements OnInit {
     return out;
   }
 
+  /**
+   * Main save() — asks for confirmation then performs a robust save.
+   */
   save() {
     this.errorList = [];
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
-    this.saving = true;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     const roleIds = (this.form.value.roleIds || []).map((v: any) => Number(v)).filter((n: number) => !isNaN(n));
+    const summaryLines = [
+      `Username: ${this.form.value.userName}`,
+      `Email: ${this.form.value.email}`,
+      `Active: ${this.form.value.isActive ? 'Yes' : 'No'}`,
+      `Roles: ${this.roles.filter(r => roleIds.includes(r.id)).map(r => r.name).join(', ') || '—'}`
+    ];
+    const actionVerb = this.isEdit ? 'Update' : 'Create';
 
+    Swal.fire({
+      title: `${actionVerb} user?`,
+      html: `<div style="text-align:left; margin-top:8px;">${summaryLines.map(l => `<div>${this.escapeHtml(l)}</div>`).join('')}</div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: `${actionVerb}`,
+      cancelButtonText: 'Cancel'
+    }).then(confirmResult => {
+      if (!confirmResult.isConfirmed) return;
+      this.performSave(roleIds);
+    });
+  }
+
+  /**
+   * Performs the save and returns a boolean via observable pipeline to remove ambiguity:
+   *  - `true` -> success (navigate)
+   *  - `false` -> failure (showed appropriate modal)
+   */
+  private performSave(roleIds: number[]) {
+    this.saving = true;
+    Swal.fire({
+      title: this.isEdit ? 'Updating user...' : 'Creating user...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    // choose API observable and normalize to boolean
+    let op$;
     if (this.isEdit && this.id) {
       const payload: UpdateUserRequest = {
         userName: this.form.value.userName,
@@ -164,10 +204,22 @@ export class UserForm implements OnInit {
         isActive: this.form.value.isActive,
         roleIds: roleIds
       };
-      this.us.update(this.id, payload).subscribe({
-        next: () => { this.saving = false; this.router.navigateByUrl('/users'); },
-        error: (err) => { this.saving = false; this.errorList = this.parseServerError(err); console.error(err); }
-      });
+
+      op$ = this.us.update(this.id, payload).pipe(
+        // If API returns something, map to true (success)
+        map(() => true),
+        catchError(err => {
+          const parsed = this.parseServerError(err);
+          this.errorList = parsed;
+          const html = `<ul style="text-align:left">${parsed.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}</ul>`;
+          Swal.fire({ title: 'Failed to update user', html, icon: 'error' });
+          return of(false);
+        }),
+        finalize(() => {
+          this.saving = false;
+          Swal.close();
+        })
+      );
     } else {
       const payload: CreateUserRequest = {
         userName: this.form.value.userName,
@@ -176,12 +228,64 @@ export class UserForm implements OnInit {
         isActive: this.form.value.isActive,
         roleIds: roleIds
       };
-      this.us.create(payload).subscribe({
-        next: () => { this.saving = false; this.router.navigateByUrl('/users'); },
-        error: (err) => { this.saving = false; this.errorList = this.parseServerError(err); console.error(err); }
+
+      op$ = this.us.create(payload).pipe(
+        map(() => true),
+        catchError(err => {
+          const parsed = this.parseServerError(err);
+          this.errorList = parsed;
+          const html = `<ul style="text-align:left">${parsed.map(s => `<li>${this.escapeHtml(s)}</li>`).join('')}</ul>`;
+          Swal.fire({ title: 'Failed to create user', html, icon: 'error' });
+          return of(false);
+        }),
+        finalize(() => {
+          this.saving = false;
+          Swal.close();
+        })
+      );
+    }
+
+    // subscribe once and act on boolean result
+    op$.subscribe({
+      next: (ok: boolean) => {
+        if (!ok) return; // error already displayed
+        // success: toast then navigate
+        this.Toast.fire({ icon: 'success', title: this.isEdit ? 'User updated' : 'User created' });
+        // navigate after tiny delay to ensure toast displays (optional)
+        setTimeout(() => this.router.navigateByUrl('/users'), 150);
+      },
+      error: (e) => {
+        // defensive: should not happen because catchError returns boolean observable
+        console.error('Unexpected error in save subscription', e);
+        Swal.fire({ title: 'Error', text: 'An unexpected error occurred.', icon: 'error' });
+      }
+    });
+  }
+
+  cancel() {
+    if (this.form.dirty) {
+      Swal.fire({
+        title: 'Discard changes?',
+        text: 'You have unsaved changes. Are you sure you want to leave?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, discard',
+        cancelButtonText: 'No, stay'
+      }).then(result => {
+        if (result.isConfirmed) this.router.navigateByUrl('/users');
       });
+    } else {
+      this.router.navigateByUrl('/users');
     }
   }
 
-  cancel() { this.router.navigateByUrl('/users'); }
+  // small helper to escape HTML in messages (prevents markup injection)
+  private escapeHtml(s: string): string {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 }

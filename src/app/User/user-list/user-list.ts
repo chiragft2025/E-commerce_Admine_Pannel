@@ -5,9 +5,10 @@ import { UserService } from '../../services/UserService';
 import { User } from '../../models/User.model';
 import { FormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth'; // <<-- your Auth service
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, of } from 'rxjs';
+import { takeUntil, catchError, finalize } from 'rxjs/operators';
 import { HasPermissionDirective } from '../../directives/has-permission.directive'; // adjust path as needed
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-user-list',
@@ -37,6 +38,15 @@ export class UserList implements OnInit, OnDestroy {
   currentUserId: number | null = null;
 
   private destroy$ = new Subject<void>();
+
+  // toast helper
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2200,
+    timerProgressBar: true
+  });
 
   constructor(
     private us: UserService,
@@ -71,7 +81,14 @@ export class UserList implements OnInit, OnDestroy {
     const q = (typeof term === 'string') ? term : this.search;
     this.loading = true;
 
-    this.us.list(q).pipe(takeUntil(this.destroy$)).subscribe({
+    this.us.list(q).pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        console.error('USER LIST ERROR', err);
+        return of([] as User[]);
+      }),
+      finalize(() => { this.loading = false; })
+    ).subscribe({
       next: (res: any) => {
         // support both shapes: array or paged { items: [...] }
         const returned = Array.isArray(res) ? res : (res?.items ?? []);
@@ -82,14 +99,13 @@ export class UserList implements OnInit, OnDestroy {
         // ensure page is within bounds
         this.page = Math.max(1, Math.min(this.page, this.pageCount));
         this.applyPagination();
-        this.loading = false;
       },
       error: (err) => {
-        console.error('USER LIST ERROR', err);
+        // handled above in catchError, but keep defensive logging
+        console.error('USER LIST SUBSCRIBE ERROR', err);
         this.allUsers = [];
         this.users = [];
         this.total = 0;
-        this.loading = false;
       }
     });
   }
@@ -103,7 +119,7 @@ export class UserList implements OnInit, OnDestroy {
   // add only allowed if user has permission
   add() {
     if (!this.canManageUsers) {
-      alert('You do not have permission to add users.');
+      Swal.fire({ title: 'No permission', text: 'You do not have permission to add users.', icon: 'warning' });
       return;
     }
     this.router.navigateByUrl('/users/new');
@@ -113,32 +129,91 @@ export class UserList implements OnInit, OnDestroy {
   edit(u: User) {
     const isSelf = !!(this.currentUserId && u.id === this.currentUserId);
     if (!this.canManageUsers && !isSelf) {
-      alert('You do not have permission to edit this user.');
+      Swal.fire({ title: 'No permission', text: 'You do not have permission to edit this user.', icon: 'warning' });
       return;
     }
     this.router.navigateByUrl(`/users/${u.id}`);
   }
 
+  /**
+   * Delete user with SweetAlert2 confirmation + loading modal, toast on success.
+   */
   remove(u: User) {
     if (!this.canManageUsers) {
-      alert('You do not have permission to delete users.');
+      Swal.fire({ title: 'No permission', text: 'You do not have permission to delete users.', icon: 'warning' });
       return;
     }
 
-    if (!confirm(`Delete user ${u.userName}?`)) return;
-    this.us.delete(u.id!).subscribe({
-      next: () => {
-        // after delete, reload current page (but ensure page still valid)
-        // simpler: re-fetch; alternative: remove from allUsers and re-apply
-        this.load(this.search, this.page);
-      },
-      error: (e) => console.error(e)
+    if (!u || u.id == null) {
+      console.warn('remove called with invalid user', u);
+      return;
+    }
+
+    // confirmation dialog
+    Swal.fire({
+      title: `Delete user "${u.userName}"?`,
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then(result => {
+      if (!result.isConfirmed) return;
+
+      // show blocking loading modal
+      Swal.fire({
+        title: 'Deleting user...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      // call delete API
+      this.us.delete(u.id!).pipe(
+        takeUntil(this.destroy$),
+        catchError(err => {
+          console.error('DELETE USER ERROR', err);
+          // return observable with null to indicate failure
+          return of(null);
+        }),
+        finalize(() => {
+          // always close loading modal
+          Swal.close();
+          this.load();
+        })
+      ).subscribe({
+        next: (res) => {
+          if (res === null) {
+            // failed
+            Swal.fire({ title: 'Failed', text: 'Could not delete the user. Please try again.', icon: 'error' });
+            return;
+          }
+
+          // success: reload or remove from cache
+          // Option A: re-fetch current page
+          this.load(this.search, this.page);
+
+          // Option B (alternative): remove from allUsers and re-apply pagination
+          // this.allUsers = this.allUsers.filter(x => x.id !== u.id);
+          // this.total = this.allUsers.length;
+          // if (this.page > this.pageCount) this.page = this.pageCount;
+          // this.applyPagination();
+
+          // success toast
+          this.Toast.fire({ icon: 'success', title: 'User deleted' });
+        },
+        error: (err) => {
+          // defensive; should be handled by catchError above
+          console.error('DELETE SUBSCRIBE ERROR', err);
+          Swal.fire({ title: 'Error', text: 'An unexpected error occurred while deleting.', icon: 'error' });
+        }
+      });
     });
   }
 
   changeRoles(u: User) {
     if (!this.canManageUsers) {
-      alert('You do not have permission to change roles.');
+      Swal.fire({ title: 'No permission', text: 'You do not have permission to change roles.', icon: 'warning' });
       return;
     }
 

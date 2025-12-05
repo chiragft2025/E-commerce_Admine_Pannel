@@ -61,7 +61,7 @@
 
       <tbody>
         <tr *ngFor="let o of orders">
-          <td data-label="ID">{{ o.id }}</td>
+          <td data-label="ID">OD_2025_{{ o.id }}</td>
           <td data-label="Placed">{{ o.placedAt | date: 'short' }}</td>
           <td data-label="Customer">{{ o.customer?.fullName }}</td>
           <td data-label="Status">{{ o.status }}</td>

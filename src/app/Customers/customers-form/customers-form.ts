@@ -2,8 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { CustomerService } from '../../services/customer.service';
+import { CustomerService, Paged } from '../../services/customer.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import Swal from 'sweetalert2';
+import { of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-customer-form',
@@ -19,6 +22,15 @@ export class CustomerForm implements OnInit {
   isEdit = false;
   saving = false;
   error: string | null = null; // global / non-field server error
+
+  // toast helper
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    timer: 1800,
+    showConfirmButton: false,
+    timerProgressBar: true
+  });
 
   constructor(
     private fb: FormBuilder,
@@ -44,7 +56,8 @@ export class CustomerForm implements OnInit {
   }
 
   load() {
-    this.cs.get(this.id!).subscribe({
+    if (!this.id) return;
+    this.cs.get(this.id).subscribe({
       next: (c) => this.form.patchValue(c),
       error: (e) => console.error(e)
     });
@@ -71,20 +84,16 @@ export class CustomerForm implements OnInit {
   private normalizeServerMessage(err: HttpErrorResponse): string {
     if (!err) return 'An unexpected error occurred';
 
-    // If backend returned a plain string
     if (typeof err.error === 'string') {
       return err.error;
     }
 
-    // If backend returned an object
     if (err.error && typeof err.error === 'object') {
-      // Common shapes: { message: "..." } or { errors: { FullName: ["..."], Email: ["..."] } }
       if (err.error.message && typeof err.error.message === 'string') {
         return err.error.message;
       }
 
       if (err.error.errors && typeof err.error.errors === 'object') {
-        // Prefer FullName or Email specific messages if present
         const errorsObj = err.error.errors;
         const fullNameKey = Object.keys(errorsObj).find(k => k.toLowerCase() === 'fullname' || k.toLowerCase() === 'fullName' || k.toLowerCase() === 'full name');
         if (fullNameKey && Array.isArray(errorsObj[fullNameKey]) && errorsObj[fullNameKey].length > 0) {
@@ -94,8 +103,6 @@ export class CustomerForm implements OnInit {
         if (emailKey && Array.isArray(errorsObj[emailKey]) && errorsObj[emailKey].length > 0) {
           return errorsObj[emailKey][0];
         }
-
-        // fallback: try to stringify a small portion
         try {
           return JSON.stringify(err.error);
         } catch {
@@ -103,7 +110,6 @@ export class CustomerForm implements OnInit {
         }
       }
 
-      // fallback: try to stringify
       try {
         return JSON.stringify(err.error);
       } catch {
@@ -111,78 +117,138 @@ export class CustomerForm implements OnInit {
       }
     }
 
-    // fallback to HttpErrorResponse.message
     return err.message || 'An unexpected error occurred';
   }
 
+  /**
+   * Confirmation + save entry point
+   */
   save() {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
     // reset previous server errors
-    this.saving = true;
-    this.error = null;
     this.clearControlDuplicateError('fullName');
     this.clearControlDuplicateError('email');
+    this.error = null;
 
+    const verb = this.isEdit ? 'Update' : 'Create';
+    const namePreview = this.form.value.fullName || '(no name)';
+
+    Swal.fire({
+      title: `${verb} customer?`,
+      html: `<div style="text-align:left"><div><strong>Name:</strong> ${this.escapeHtml(namePreview)}</div><div style="margin-top:8px"><strong>Email:</strong> ${this.escapeHtml(this.form.value.email || '')}</div></div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: verb,
+      cancelButtonText: 'Cancel'
+    }).then(result => {
+      if (!result.isConfirmed) return;
+      this.performSave();
+    });
+  }
+
+  private performSave() {
     const payload = this.form.value;
 
-    const handleError = (err: HttpErrorResponse) => {
-      this.saving = false;
+    // show loader
+    this.saving = true;
+    Swal.fire({
+      title: this.isEdit ? 'Updating customer...' : 'Creating customer...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
 
-      const msg = this.normalizeServerMessage(err).toString();
+    // choose observable and normalize to boolean
+    const op$ = (this.isEdit && this.id)
+      ? this.cs.update(this.id!, payload).pipe(map(() => true))
+      : this.cs.create(payload).pipe(map(() => true));
 
-      // if the server indicates duplicate full name
-      if (err.status === 400 && msg && msg.toLowerCase().includes('full') && msg.toLowerCase().includes('name') && msg.toLowerCase().includes('exist')) {
-        this.setControlDuplicateError('fullName');
-        return;
-      }
+    op$.pipe(
+      catchError((err: HttpErrorResponse) => {
+        // Normalize message
+        const msg = this.normalizeServerMessage(err).toString();
 
-      // if the server indicates duplicate email
-      if (err.status === 400 && msg && msg.toLowerCase().includes('email') && msg.toLowerCase().includes('exist')) {
-        this.setControlDuplicateError('email');
-        return;
-      }
-
-      // If server returned a direct "Customer full name already exists" or "Customer email already exists"
-      if (err.status === 400 && msg) {
-        // handle cases like "Customer full name already exists" or "Customer email already exists"
-        const lower = msg.toLowerCase();
-        if (lower.includes('full name') && lower.includes('exist')) {
+        // Duplicate full name
+        if (err.status === 400 && msg && msg.toLowerCase().includes('full') && msg.toLowerCase().includes('name') && msg.toLowerCase().includes('exist')) {
           this.setControlDuplicateError('fullName');
-          return;
+          return of(false);
         }
-        if (lower.includes('email') && lower.includes('exist')) {
+
+        // Duplicate email
+        if (err.status === 400 && msg && msg.toLowerCase().includes('email') && msg.toLowerCase().includes('exist')) {
           this.setControlDuplicateError('email');
-          return;
+          return of(false);
         }
+
+        // Other 400 messages like "Customer full name already exists" etc.
+        if (err.status === 400 && msg) {
+          const lower = msg.toLowerCase();
+          if (lower.includes('full name') && lower.includes('exist')) {
+            this.setControlDuplicateError('fullName');
+            return of(false);
+          }
+          if (lower.includes('email') && lower.includes('exist')) {
+            this.setControlDuplicateError('email');
+            return of(false);
+          }
+        }
+
+        // Otherwise show error modal and set error for template
+        const display = msg || 'An unexpected error occurred';
+        Swal.fire({ title: 'Error', html: this.escapeHtml(display), icon: 'error' });
+        this.error = display;
+        return of(false);
+      }),
+      finalize(() => {
+        this.saving = false;
+        try { Swal.close(); } catch {}
+      })
+    ).subscribe({
+      next: async (ok: boolean) => {
+        if (!ok) return;
+
+        // success toast
+        this.Toast.fire({ icon: 'success', title: this.isEdit ? 'Customer updated' : 'Customer created' });
+
+        // ensure modal closed then navigate and await result
+        try { Swal.close(); } catch {}
+
+        try {
+          const nav = await this.router.navigateByUrl('/customers');
+          if (!nav) {
+            Swal.fire({
+              title: 'Saved',
+              text: 'Customer saved but navigation was blocked by a guard.',
+              icon: 'info'
+            });
+          }
+        } catch (navErr) {
+          console.error('Navigation error after save', navErr);
+          Swal.fire({
+            title: 'Saved',
+            text: 'Customer saved but navigation failed. Check console.',
+            icon: 'info'
+          });
+        }
+      },
+      error: (e) => {
+        // defensive: catchError should handle known errors
+        console.error('Unexpected error in save subscribe', e);
+        Swal.fire({ title: 'Error', text: 'An unexpected error occurred.', icon: 'error' });
       }
-
-      // otherwise show global error (used by your template)
-      this.error = msg || 'An unexpected error occurred';
-    };
-
-    const onSuccessCreate = () => {
-      this.saving = false;
-      this.router.navigateByUrl('/customers');
-    };
-
-    const onSuccessUpdate = () => {
-      this.saving = false;
-      this.router.navigateByUrl('/customers');
-    };
-
-    if (this.isEdit) {
-      this.cs.update(this.id!, payload).subscribe({
-        next: onSuccessUpdate,
-        error: handleError
-      });
-    } else {
-      this.cs.create(payload).subscribe({
-        next: onSuccessCreate,
-        error: handleError
-      });
-    }
+    });
   }
 
   cancel() { this.router.navigateByUrl('/customers'); }
+
+  // small helper to escape HTML in messages (prevents markup injection)
+  private escapeHtml(s: string | undefined | null): string {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 }

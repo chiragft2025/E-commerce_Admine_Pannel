@@ -5,7 +5,16 @@ import { RoleService } from '../../services/role.service';
 import { RoleDto } from '../../models/role.model';
 import { FormsModule } from '@angular/forms';
 import { Subject, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, takeUntil, switchMap, catchError, tap } from 'rxjs/operators';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  takeUntil,
+  switchMap,
+  catchError,
+  tap,
+  finalize
+} from 'rxjs/operators';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-role-list',
@@ -31,6 +40,15 @@ export class RoleList implements OnInit, OnDestroy {
   // search stream + teardown
   private search$ = new Subject<string>();
   private destroy$ = new Subject<void>();
+
+  // toast helper
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2200,
+    timerProgressBar: true
+  });
 
   constructor(private rs: RoleService, private router: Router) {}
 
@@ -117,23 +135,76 @@ export class RoleList implements OnInit, OnDestroy {
     this.router.navigateByUrl(`/roles/${r.id}`);
   }
 
+  /**
+   * Delete with SweetAlert2 confirmation + loading modal.
+   * Replaces native confirm(...) and shows toast on success.
+   */
   remove(r: RoleDto) {
-    if (!confirm(`Delete role "${r.name}"?`)) return;
-    this.rs.delete(r.id).pipe(
-      takeUntil(this.destroy$),
-      catchError(err => {
-        console.error('DELETE ROLE ERROR', err);
-        return of(null);
-      })
-    ).subscribe({
-      next: () => {
-        // remove from cache and re-apply pagination
-        this.allRoles = this.allRoles.filter(x => x.id !== r.id);
-        this.total = this.allRoles.length;
-        // if current page is now out of range, clamp it
-        if (this.page > this.pageCount) this.page = this.pageCount;
-        this.applyFilterAndPagination();
-      }
+    // Ask for confirmation first
+    Swal.fire({
+      title: `Delete role "${r.name}"?`,
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then(result => {
+      if (!result.isConfirmed) return;
+
+      // Show blocking loading modal
+      Swal.fire({
+        title: 'Deleting...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      // Call delete API
+      this.rs.delete(r.id).pipe(
+        takeUntil(this.destroy$),
+        catchError(err => {
+          console.error('DELETE ROLE ERROR', err);
+          // convert to a null result so finalize runs and subscribe error handler receives it
+          return of(null);
+        }),
+        finalize(() => {
+          // ensure the loading modal is closed
+          Swal.close();
+          this.load();
+        })
+      ).subscribe({
+        next: (res) => {
+          // If API returned null because of error, res === null
+          // You might want to inspect server response; here we treat null as failure
+          if (res === null) {
+            Swal.fire({
+              title: 'Failed',
+              text: 'Could not delete the role. Please try again.',
+              icon: 'error'
+            });
+            return;
+          }
+
+          // success: remove from cache and update UI
+          this.allRoles = this.allRoles.filter(x => x.id !== r.id);
+          this.total = this.allRoles.length;
+          if (this.page > this.pageCount) this.page = this.pageCount;
+          this.applyFilterAndPagination();
+
+          // success toast
+          this.Toast.fire({ icon: 'success', title: 'Role deleted' });
+          this.load();
+        },
+        error: (err) => {
+          // defensive: should be handled by catchError above, but keep this for completeness
+          console.error('DELETE SUBSCRIBE ERROR', err);
+          Swal.fire({
+            title: 'Error',
+            text: 'An unexpected error occurred while deleting.',
+            icon: 'error'
+          });
+        }
+      });
     });
   }
 

@@ -14,8 +14,9 @@ import { CustomerService } from '../../services/customer.service';
 import { OrderService } from '../../services/order.service';
 import { Product } from '../../models/product.model';
 import { Subject, of } from 'rxjs';
-import { debounceTime, takeUntil, catchError } from 'rxjs/operators';
+import { debounceTime, takeUntil, catchError, finalize, map } from 'rxjs/operators';
 import { Customer } from '../../models/customers.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-order-form',
@@ -32,8 +33,17 @@ export class OrderForm implements OnInit, OnDestroy {
   loadingCustomers = false;
   loadingProducts = false;
   saving = false;
-  error: string | null = null;
+  error: any = null;
   private destroy$ = new Subject<void>();
+
+  // toast helper
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    timer: 2000,
+    showConfirmButton: false,
+    timerProgressBar: true
+  });
 
   constructor(
     private fb: FormBuilder,
@@ -69,11 +79,11 @@ export class OrderForm implements OnInit, OnDestroy {
           console.error('Failed to load customers', err);
           this.error = 'Failed to load customers. Try again later.';
           return of({ items: [], total: 0, page: 1, pageSize: 0 } as Paged<Customer>);
-        })
+        }),
+        finalize(() => { this.loadingCustomers = false; })
       )
       .subscribe((paged: Paged<Customer>) => {
         this.customers = paged.items || [];
-        this.loadingCustomers = false;
       });
   }
 
@@ -91,7 +101,8 @@ export class OrderForm implements OnInit, OnDestroy {
         console.error('Failed to load products', err);
         this.loadingProducts = false;
         return of([] as Product[]);
-      })
+      }),
+      finalize(() => { this.loadingProducts = false; })
     ).subscribe((res: any) => {
       if (!res) {
         this.products = [];
@@ -102,7 +113,6 @@ export class OrderForm implements OnInit, OnDestroy {
       } else {
         this.products = Array.isArray(res.data) ? res.data : [];
       }
-      this.loadingProducts = false;
     });
   }
 
@@ -252,16 +262,75 @@ export class OrderForm implements OnInit, OnDestroy {
       }))
     };
 
+    // Confirm before sending
+    const totalAmount = this.total;
+    Swal.fire({
+      title: 'Create order?',
+      html: `<div style="text-align:left">
+               <div><strong>Customer ID:</strong> ${this.escapeHtml(String(payload.customerId))}</div>
+               <div style="margin-top:6px"><strong>Items:</strong> ${payload.items.length}</div>
+               <div style="margin-top:6px"><strong>Total:</strong> ${totalAmount}</div>
+             </div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Create',
+      cancelButtonText: 'Cancel'
+    }).then(result => {
+      if (!result.isConfirmed) return;
+      this.saveOrder(payload);
+    });
+  }
+
+  private saveOrder(payload: any) {
     this.saving = true;
-    this.os.create(payload).pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => { this.saving = false; this.router.navigateByUrl('/orders'); },
-      error: (err) => {
-        this.saving = false;
-        this.error = err?.error?.message ?? 'Failed to create order';
+
+    Swal.fire({
+      title: 'Saving order...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    this.os.create(payload).pipe(
+      takeUntil(this.destroy$),
+      map(() => true),
+      catchError(err => {
         console.error(err);
+        this.error = err?.error?.message ?? 'Failed to create order';
+        Swal.fire('Error', this.error, 'error');
+        return of(false);
+      }),
+      finalize(() => {
+        this.saving = false;
+        try { Swal.close(); } catch {}
+      })
+    ).subscribe(async ok => {
+      if (!ok) return;
+
+      this.Toast.fire({ icon: 'success', title: 'Order created' });
+
+      // await navigation so redirect won't be blocked
+      try {
+        const nav = await this.router.navigateByUrl('/orders');
+        if (!nav) {
+          Swal.fire({ title: 'Saved', text: 'Order saved but navigation was blocked.', icon: 'info' });
+        }
+      } catch (navErr) {
+        console.error('Navigation error after save', navErr);
+        Swal.fire({ title: 'Saved', text: 'Order saved but navigation failed. Check console.', icon: 'info' });
       }
     });
   }
 
   cancel() { this.router.navigateByUrl('/orders'); }
+
+  // small helper to escape HTML in messages (prevents markup injection)
+  private escapeHtml(s: string | undefined | null): string {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 }

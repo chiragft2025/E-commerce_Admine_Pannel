@@ -7,8 +7,9 @@ import { User } from '../../models/User.model';
 import { FormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth';
 import { Subject, forkJoin, of } from 'rxjs';
-import { takeUntil, catchError } from 'rxjs/operators';
+import { takeUntil, catchError, finalize } from 'rxjs/operators';
 import { RoleDto } from '../../models/role.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-user-role-manage',
@@ -33,6 +34,15 @@ export class UserRoleManage implements OnInit, OnDestroy {
   canManageUsers = false;
 
   private destroy$ = new Subject<void>();
+
+  // toast helper
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2200,
+    timerProgressBar: true
+  });
 
   constructor(
     private route: ActivatedRoute,
@@ -196,7 +206,7 @@ export class UserRoleManage implements OnInit, OnDestroy {
   // Save selected roles
   submitRoles() {
     if (!this.canManageUsers) {
-      alert('You do not have permission to change roles.');
+      Swal.fire({ title: 'No permission', text: 'You do not have permission to change roles.', icon: 'warning' });
       return;
     }
 
@@ -205,37 +215,91 @@ export class UserRoleManage implements OnInit, OnDestroy {
       return;
     }
 
-    this.saving = true;
-    this.error = null;
-
     const roleIds = Array.from(this.selectedRoleIdsSet);
 
-    this.us.assignRoles(this.userId, roleIds)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.saving = false;
-          // refresh user (optional)
-          this.us.get(this.userId).pipe(takeUntil(this.destroy$)).subscribe(u => {
-            this.user = u;
-            // keep UI selection in sync (rebuild set)
-            this.selectedRoleIdsSet.clear();
-            if (u?.roleIds?.length) u.roleIds.forEach((id: any) => this.selectedRoleIdsSet.add(Number(id)));
-          });
+    // Prepare a short summary for confirmation
+    const selectedNames = this.availableRoles
+      .filter(r => roleIds.includes(r.id as number))
+      .map(r => r.name)
+      .filter(Boolean)
+      .join(', ') || '—';
 
-          // navigate back to users list or show a message
-          alert('Roles updated.');
-          this.router.navigateByUrl('/users');
-        },
-        error: (err) => {
-          console.error('Assign roles failed', err);
-          this.error = 'Failed to assign roles. See console for details.';
-          this.saving = false;
-        }
+    Swal.fire({
+      title: 'Confirm role changes',
+      html: `<div style="text-align:left">
+               <div><strong>User:</strong> ${this.escapeHtml(this.user!.userName ?? String(this.user!.id))}</div>
+               <div style="margin-top:6px"><strong>Selected roles:</strong> ${this.escapeHtml(selectedNames)}</div>
+             </div>`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Save',
+      cancelButtonText: 'Cancel'
+    }).then(result => {
+      if (!result.isConfirmed) return;
+
+      // show blocking loading modal
+      this.saving = true;
+      Swal.fire({
+        title: 'Saving roles...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
       });
+
+      this.us.assignRoles(this.userId, roleIds)
+        .pipe(
+          takeUntil(this.destroy$),
+          catchError(err => {
+            console.error('Assign roles failed', err);
+            const msg = (err?.error?.message) ? err.error.message : 'Failed to assign roles. Please try again.';
+            Swal.fire({ title: 'Failed', text: msg, icon: 'error' });
+            return of(null);
+          }),
+          finalize(() => {
+            this.saving = false;
+            Swal.close();
+            this.router.navigateByUrl('/users');
+          })
+        )
+        .subscribe({
+          next: (res) => {
+            if (res == null) {
+              // error already displayed
+              return;
+            }
+
+            // refresh user (optional) and keep UI in sync
+            this.us.get(this.userId).pipe(takeUntil(this.destroy$), catchError(() => of(null))).subscribe(u => {
+              if (u) {
+                this.user = u;
+                this.selectedRoleIdsSet.clear();
+                if (u?.roleIds?.length) u.roleIds.forEach((id: any) => this.selectedRoleIdsSet.add(Number(id)));
+              }
+            });
+
+            // success toast + navigate
+            this.Toast.fire({ icon: 'success', title: 'Roles updated' });
+            setTimeout(() => this.router.navigateByUrl('/users'), 250);
+          },
+          error: (err) => {
+            // defensive: should be caught earlier
+            console.error('Unexpected subscribe error', err);
+            Swal.fire({ title: 'Error', text: 'An unexpected error occurred while assigning roles.', icon: 'error' });
+          }
+        });
+    });
   }
 
   cancel() {
     this.router.navigateByUrl('/users');
+  }
+
+  // helper to escape HTML in messages
+  private escapeHtml(s: string): string {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }

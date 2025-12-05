@@ -5,11 +5,14 @@ import { ProductService, Paged } from '../../services/product';
 import { Product } from '../../models/product.model';
 import { FormsModule } from '@angular/forms';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
+import Swal from 'sweetalert2';
+import { of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-products-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule,HasPermissionDirective],
+  imports: [CommonModule, RouterModule, FormsModule, HasPermissionDirective],
   templateUrl: './products-list.html',
   styleUrls: ['./products-list.scss']
 })
@@ -23,6 +26,15 @@ export class ProductsList implements OnInit {
   page = 1;
   pageSize = 10;
   pages: number[] = [];
+
+  // toast helper
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    timer: 1800,
+    showConfirmButton: false,
+    timerProgressBar: true
+  });
 
   constructor(private ps: ProductService, private router: Router) {}
 
@@ -81,11 +93,47 @@ export class ProductsList implements OnInit {
 
   add() { this.router.navigateByUrl('/products/new'); }
   edit(p: Product) { this.router.navigateByUrl(`/products/${p.id}`); }
+
   remove(p: Product) {
-    if (!confirm(`Delete product "${p.name}"?`)) return;
-    this.ps.delete(p.id!).subscribe({
-      next: () => this.load(this.q, this.page),
-      error: (e) => console.error(e)
+    // SweetAlert2 confirmation + loading + toast; preserves original reload behavior
+    Swal.fire({
+      title: `Delete product "${this.escapeHtml(p.name)}"?`,
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then(result => {
+      if (!result.isConfirmed) return;
+
+      // show blocking loading modal
+      this.loading = true;
+      Swal.fire({
+        title: 'Deleting...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      this.ps.delete(p.id!).pipe(
+        map(() => true),
+        catchError(err => {
+          console.error('DELETE PRODUCT ERROR', err);
+          const msg = err?.error?.message ?? 'Failed to delete product';
+          Swal.fire({ title: 'Delete failed', text: msg, icon: 'error' });
+          return of(false);
+        }),
+        finalize(() => {
+          this.loading = false;
+          try { Swal.close(); } catch {}
+        })
+      ).subscribe(ok => {
+        if (!ok) return;
+        // reload current page (preserves your original behavior)
+        this.load(this.q, this.page);
+        // show toast
+        this.Toast.fire({ icon: 'success', title: 'Product deleted' });
+      });
     });
   }
 
@@ -96,5 +144,16 @@ export class ProductsList implements OnInit {
 
   tagsList(p: Product) {
     return (p.tags ?? []).map(t => t.name).join(', ');
+  }
+
+  // small helper to escape HTML in messages (prevents markup injection)
+  private escapeHtml(s: string | undefined | null): string {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }

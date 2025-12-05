@@ -2,10 +2,12 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, of } from 'rxjs';
 import { CategoryService } from '../../services/category';
 import { Category } from '../../models/categories.model';
 import { HasPermissionDirective } from '../../directives/has-permission.directive';
+import Swal from 'sweetalert2';
+import { catchError, finalize, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-category-list',
@@ -29,6 +31,15 @@ export class CategoryList implements OnInit, OnDestroy {
   q = '';
 
   private sub: Subscription | null = null;
+
+  // toast helper
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 1800,
+    timerProgressBar: true
+  });
 
   constructor(private cs: CategoryService, private router: Router) {}
 
@@ -150,21 +161,54 @@ export class CategoryList implements OnInit, OnDestroy {
   }
 
   remove(cat: Category): void {
-    if (!confirm(`Delete "${cat.title}"? This action cannot be undone.`)) return;
-    this.loading = true;
-    this.cs.delete(cat.id!).subscribe({
-      next: () => {
-        // if we removed the last item on the page and page > 1, go back a page
+    // use SweetAlert2 confirmation + loading + toast
+    Swal.fire({
+      title: `Delete "${this.escapeHtml(cat.title)}"?`,
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then(result => {
+      if (!result.isConfirmed) return;
+
+      // show blocking loading modal
+      this.loading = true;
+      Swal.fire({
+        title: 'Deleting...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      // call delete and handle result without changing your original logic
+      (this.cs.delete(cat.id!) as any).pipe(
+        // normalize to boolean
+        map(() => true),
+        catchError((err: any) => {
+          console.error('Delete failed', err);
+          const msg = err?.error?.message ?? 'Delete failed';
+          Swal.fire({ title: 'Delete failed', text: msg, icon: 'error' });
+          return of(false);
+        }),
+        finalize(() => {
+          this.loading = false;
+          try { Swal.close(); } catch {}
+        })
+      ).subscribe((ok: boolean) => {
+        if (!ok) return;
+
+        // same behavior as before: if last item on page and page > 1, go back a page
         if (this.categories.length === 1 && this.page > 1) {
           this.page = this.page - 1;
         }
+
+        // reload same way you did originally
         this.load(undefined, this.page);
-      },
-      error: (err) => {
-        console.error('Delete failed', err);
-        this.error = 'Delete failed';
-        this.loading = false;
-      }
+
+        // toast success
+        this.Toast.fire({ icon: 'success', title: 'Category deleted' });
+      });
     });
   }
 
@@ -186,5 +230,16 @@ export class CategoryList implements OnInit, OnDestroy {
     if (p < 1 || p > this.totalPages) return;
     this.page = p;
     this.load(undefined, p);
+  }
+
+  // small helper to escape HTML in messages (prevents markup injection)
+  private escapeHtml(s: string | undefined | null): string {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }

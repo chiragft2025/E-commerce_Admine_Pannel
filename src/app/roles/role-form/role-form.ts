@@ -11,6 +11,7 @@ import { RoleService } from '../../services/role.service';
 import { PermissionService } from '../../services/permission.service';
 import { Permission } from '../../models/permission.model';
 import { CreateRoleRequest, UpdateRoleRequest } from '../../models/role.model';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-role-form',
@@ -27,6 +28,15 @@ export class RoleForm implements OnInit {
   loading = false;
   saving = false;
   error: string | null = null;
+
+  // small helper: SweetAlert2 toast instance
+  private Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 2500,
+    timerProgressBar: true
+  });
 
   constructor(
     private fb: FormBuilder,
@@ -94,6 +104,12 @@ export class RoleForm implements OnInit {
       error: (err) => {
         console.error('Failed to load role', err);
         this.loading = false;
+        // show an error alert
+        Swal.fire({
+          title: 'Failed to load role',
+          text: 'An error occurred while loading the role. Please try again.',
+          icon: 'error'
+        });
       }
     });
   }
@@ -113,7 +129,7 @@ export class RoleForm implements OnInit {
     return (this.form.value.permissionIds || []).includes(pid);
   }
 
-  /** Save (create or update) */
+  /** Save (create or update) with SweetAlert2 feedback */
   save() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -121,6 +137,16 @@ export class RoleForm implements OnInit {
     }
 
     this.saving = true;
+    this.error = null;
+
+    // Show a blocking loading modal
+    Swal.fire({
+      title: this.isEdit ? 'Updating role...' : 'Creating role...',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
 
     const payload: CreateRoleRequest | UpdateRoleRequest = {
       name: this.form.value.name,
@@ -137,19 +163,34 @@ export class RoleForm implements OnInit {
           this.rs.replaceRolePermissions(this.id!, permIds).subscribe({
             next: () => {
               this.saving = false;
-              this.router.navigateByUrl('/roles');
+              Swal.close(); // close loading
+              this.Toast.fire({ icon: 'success', title: 'Role updated' });
+              // navigate after a short delay so toast shows (toast auto-closes)
+              setTimeout(() => this.router.navigateByUrl('/roles'), 300);
             },
             error: (err) => {
               this.saving = false;
+              Swal.close();
               this.error = 'Failed to update permissions';
               console.error(err);
+              Swal.fire({
+                title: 'Failed to update permissions',
+                text: 'There was an error updating role permissions. Please try again.',
+                icon: 'error'
+              });
             }
           });
         },
         error: (err) => {
           this.saving = false;
+          Swal.close();
           this.error = 'Failed to update role';
           console.error(err);
+          Swal.fire({
+            title: 'Failed to update role',
+            text: 'There was an error updating the role. Please check your input and try again.',
+            icon: 'error'
+          });
         }
       });
 
@@ -163,30 +204,65 @@ export class RoleForm implements OnInit {
             this.rs.replaceRolePermissions(newId, permIds).subscribe({
               next: () => {
                 this.saving = false;
-                this.router.navigateByUrl('/roles');
+                Swal.close();
+                this.Toast.fire({ icon: 'success', title: 'Role created' });
+                setTimeout(() => this.router.navigateByUrl('/roles'), 300);
               },
               error: (err) => {
                 this.saving = false;
+                Swal.close();
                 this.error = 'Failed to assign permissions';
                 console.error(err);
+                Swal.fire({
+                  title: 'Failed to assign permissions',
+                  text: 'Role was created but assigning permissions failed. Please try again.',
+                  icon: 'warning'
+                }).then(() => {
+                  // still navigate back because role exists; optional
+                  this.router.navigateByUrl('/roles');
+                });
               }
             });
           } else {
             // fallback
             this.saving = false;
-            this.router.navigateByUrl('/roles');
+            Swal.close();
+            this.Toast.fire({ icon: 'success', title: 'Role created' });
+            setTimeout(() => this.router.navigateByUrl('/roles'), 300);
           }
         },
         error: (err) => {
           this.saving = false;
+          Swal.close();
           this.error = 'Failed to create role';
           console.error(err);
+          Swal.fire({
+            title: 'Failed to create role',
+            text: 'An error occurred while creating the role. Please try again.',
+            icon: 'error'
+          });
         }
       });
     }
   }
 
+  /** Cancel with confirmation if form is dirty */
   cancel() {
-    this.router.navigateByUrl('/roles');
+    if (this.form.dirty) {
+      Swal.fire({
+        title: 'Discard changes?',
+        text: 'You have unsaved changes. Are you sure you want to leave?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, discard',
+        cancelButtonText: 'No, stay'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          this.router.navigateByUrl('/roles');
+        }
+      });
+    } else {
+      this.router.navigateByUrl('/roles');
+    }
   }
 }
