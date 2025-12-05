@@ -22,6 +22,10 @@ export class MainLayout implements OnInit, OnDestroy {
   sidebarOpen = true;
   year = new Date().getFullYear();
 
+  // --- user menu state ---
+  userMenuOpen = false;
+  userName = 'Admin';
+
   private routerSub: Subscription | null = null;
 
   constructor(
@@ -50,6 +54,21 @@ export class MainLayout implements OnInit, OnDestroy {
         }
       }
     });
+
+    // Initialize username: prefer Auth service if it exposes a getter, otherwise decode token
+    try {
+      // If your Auth service has getUserName() or currentUser property, use it:
+      const maybeName = (this.auth as any).getUserName?.() || (this.auth as any).userName || (this.auth as any).currentUser?.username;
+      if (maybeName && typeof maybeName === 'string') {
+        this.userName = maybeName;
+      } else {
+        const token = this.getTokenFromStorage();
+        const nameFromToken = token ? this.getUserNameFromJwt(token) : null;
+        if (nameFromToken) this.userName = nameFromToken;
+      }
+    } catch {
+      // fallback silent
+    }
   }
 
   ngOnDestroy(): void {
@@ -91,10 +110,48 @@ export class MainLayout implements OnInit, OnDestroy {
     this.router.navigate(['/login']).catch(() => (window.location.href = '/login'));
   }
 
+  // ----------------- User dropdown related -----------------
+
+  /** Toggle user dropdown. Template should call this with $event to stop propagation. */
+  toggleUserMenu(event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.userMenuOpen = !this.userMenuOpen;
+  }
+
+  /** Called when user clicks "Profile" item in dropdown */
+  onProfile(): void {
+    this.userMenuOpen = false;
+    this.profile();
+  }
+
+  /** Called when user clicks "Logout" item in dropdown */
+  onLogout(): void {
+    this.userMenuOpen = false;
+    this.logout();
+  }
+
+  // Close the user dropdown when clicking anywhere outside
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.userMenuOpen) {
+      this.userMenuOpen = false;
+    }
+    // also close sidebar on mobile if click outside? keep existing behavior separate
+  }
+
+  // Close dropdown or mobile sidebar on Escape key
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    // existing behavior: close sidebar on small screens
     if (this.sidebarOpen && typeof window !== 'undefined' && window.innerWidth <= 920) {
       this.closeSidebar();
+    }
+
+    // also close user menu if open
+    if (this.userMenuOpen) {
+      this.userMenuOpen = false;
     }
   }
 
@@ -117,5 +174,42 @@ export class MainLayout implements OnInit, OnDestroy {
     } catch (e) {
       // ignore (server-side rendering or non-browser envs)
     }
+  }
+
+  // ----------------- Helpers for username extraction -----------------
+
+  /** Try to get JWT from storage. Adjust key if you use another one. */
+  private getTokenFromStorage(): string | null {
+    try {
+      return localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    } catch {
+      return null;
+    }
+  }
+
+  /** Read a username from a JWT token payload (very small helper). */
+  private getUserNameFromJwt(token: string): string | null {
+    try {
+      const parts = token.split('.');
+      if (parts.length < 2) return null;
+      const payload = parts[1];
+      // base64url -> base64
+      const b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = this.padBase64(b64);
+      const decoded = atob(padded);
+      const obj = JSON.parse(decoded);
+      // Try common claim names: 'unique_name', 'name', 'username', 'sub'
+      return obj['unique_name'] || obj['name'] || obj['username'] || obj['sub'] || null;
+    } catch {
+      return null;
+    }
+  }
+
+  private padBase64(base64: string) {
+    const pad = base64.length % 4;
+    if (pad === 2) return base64 + '==';
+    if (pad === 3) return base64 + '=';
+    if (pad === 1) return base64 + '===';
+    return base64;
   }
 }
