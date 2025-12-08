@@ -26,7 +26,7 @@
       </button>
 
       <button
-        *appHasPermission="'Product.Manage'"
+        *appHasPermission="'Product.Create'"
         class="btn btn-sm btn-primary w-100 w-sm-auto"
         (click)="add()"
         aria-label="Add product"
@@ -54,7 +54,7 @@
           <th>Category</th>
           <th>Tags</th>
           <th>Active</th>
-          <th class="text-end" *appHasPermission="'Product.Manage'">Actions</th>
+          <th class="text-end"  *appHasPermission="{ perms: ['Product.Edit', 'Product.Delete'], mode: 'any' }" >Actions</th>
         </tr>
       </thead>
 
@@ -67,13 +67,13 @@
           <td data-label="Category">{{ catTitle(p) }}</td>
           <td data-label="Tags">{{ tagsList(p) }}</td>
           <td data-label="Active">{{ p.isActive ? 'Yes' : 'No' }}</td>
-          <td class="text-end" data-label="Actions" *appHasPermission="'Product.Manage'">
+          <td class="text-end" data-label="Actions"  *appHasPermission="{ perms: ['Product.Edit', 'Product.Delete'], mode: 'any' }">
             <div class="btn-group btn-group-sm" role="group" aria-label="Product actions">
-              <button class="btn btn-outline-primary" (click)="edit(p)" title="Edit" aria-label="Edit product">
+              <button class="btn btn-outline-primary" *appHasPermission="'Product.Edit'" (click)="edit(p)" title="Edit" aria-label="Edit product">
                 <i class="bi bi-pencil"></i>
               </button>
 
-              <button class="btn btn-outline-danger" (click)="remove(p)" title="Delete" aria-label="Delete product">
+              <button class="btn btn-outline-danger" *appHasPermission="'Product.Delete'" (click)="remove(p)" title="Delete" aria-label="Delete product">
                 <i class="bi bi-trash"></i>
               </button>
             </div>

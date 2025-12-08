@@ -30,7 +30,7 @@
 
       <!-- Add User button -->
       <button
-        *appHasPermission="'User.Manage'"
+        *appHasPermission="'User.Create'"
         class="btn btn-sm btn-primary w-100 w-sm-auto"
         (click)="add()"
         aria-label="Add user"
@@ -55,7 +55,7 @@
           <th scope="col">Email</th>
           <th scope="col" class="text-center">Active</th>
           <th scope="col">Roles</th>
-          <th scope="col" class="text-end" *appHasPermission="'User.Manage'">Actions</th>
+          <th scope="col" class="text-end"  *appHasPermission="{ perms: ['User.Edit', 'User.Delete'], mode: 'any' }">Actions</th>
         </tr>
       </thead>
 
@@ -66,9 +66,10 @@
           <td data-label="Active" class="text-center">{{ u.isActive ? 'Yes' : 'No' }}</td>
           <td data-label="Roles">{{ displayRoles(u) }}</td>
 
-          <td data-label="Actions" class="text-end" *appHasPermission="'User.Manage'">
+          <td data-label="Actions" class="text-end"  *appHasPermission="{ perms: ['User.Edit', 'User.Delete'], mode: 'any' }">
             <div class="btn-group btn-group-sm" role="group" aria-label="User actions">
               <button
+               *appHasPermission="'User.Edit'"
                 class="btn btn-outline-primary"
                 (click)="edit(u)"
                 title="Edit"
@@ -78,6 +79,7 @@
               </button>
 
               <button
+               *appHasPermission="'User.Delete'"
                 class="btn btn-outline-danger"
                 (click)="remove(u)"
                 title="Delete"
@@ -87,6 +89,7 @@
               </button>
 
               <a
+               *appHasPermission="'Customer.Edit'"
                 class="btn btn-outline-secondary"
                 [routerLink]="['/users', u.id, 'roles']"
                 title="Change roles"

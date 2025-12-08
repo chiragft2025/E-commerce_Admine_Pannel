@@ -54,7 +54,7 @@ export class UserRoleManage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // permissions
-    this.canManageUsers = this.auth.hasPermission ? this.auth.hasPermission('User.Manage') : false;
+    this.canManageUsers = this.auth.hasPermission ? this.auth.hasPermission('User.Edit') : false;
 
     // get id from route
     const idParam = this.route.snapshot.paramMap.get('id');

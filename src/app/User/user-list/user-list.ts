@@ -60,7 +60,7 @@ export class UserList implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         // helper methods on your Auth service: hasPermission and getUserId
-        this.canManageUsers = this.auth.hasPermission('User.Manage');
+        //this.canManageUsers = this.auth.hasPermission(['User.Create'|'User.Edit'|'User.Delete');
         this.currentUserId = this.auth.getUserId ? this.auth.getUserId() : null;
       });
 
@@ -118,20 +118,12 @@ export class UserList implements OnInit, OnDestroy {
 
   // add only allowed if user has permission
   add() {
-    if (!this.canManageUsers) {
-      Swal.fire({ title: 'No permission', text: 'You do not have permission to add users.', icon: 'warning' });
-      return;
-    }
     this.router.navigateByUrl('/users/new');
   }
 
   // edit allowed if manager OR editing own profile
   edit(u: User) {
     const isSelf = !!(this.currentUserId && u.id === this.currentUserId);
-    if (!this.canManageUsers && !isSelf) {
-      Swal.fire({ title: 'No permission', text: 'You do not have permission to edit this user.', icon: 'warning' });
-      return;
-    }
     this.router.navigateByUrl(`/users/${u.id}`);
   }
 
@@ -139,11 +131,6 @@ export class UserList implements OnInit, OnDestroy {
    * Delete user with SweetAlert2 confirmation + loading modal, toast on success.
    */
   remove(u: User) {
-    if (!this.canManageUsers) {
-      Swal.fire({ title: 'No permission', text: 'You do not have permission to delete users.', icon: 'warning' });
-      return;
-    }
-
     if (!u || u.id == null) {
       console.warn('remove called with invalid user', u);
       return;
@@ -212,10 +199,6 @@ export class UserList implements OnInit, OnDestroy {
   }
 
   changeRoles(u: User) {
-    if (!this.canManageUsers) {
-      Swal.fire({ title: 'No permission', text: 'You do not have permission to change roles.', icon: 'warning' });
-      return;
-    }
 
     if (!u || u.id == null) {
       console.warn('changeRoles called with invalid user', u);

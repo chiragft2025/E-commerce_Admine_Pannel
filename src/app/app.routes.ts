@@ -48,13 +48,13 @@ export const routes: Routes = [
         path: 'products/new',
         component: ProductForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Product.Manage' },
+        data: { permission: 'Product.Create' },
       },
       {
         path: 'products/:id',
         component: ProductForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Product.Manage' },
+        data: { permission: 'Product.Edit' },
       },
 
       // Categories
@@ -68,13 +68,13 @@ export const routes: Routes = [
         path: 'categories/new',
         component: CategoryForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Category.Manage' },
+        data: { permission: 'Category.Create' },
       },
       {
         path: 'categories/:id',
         component: CategoryForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Category.Manage' },
+        data: { permission: 'Category.Edit' },
       },
 
       // Users
@@ -82,19 +82,19 @@ export const routes: Routes = [
         path: 'users',
         component: UserList,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.Manage' },
+        data: { permission: 'User.View' },
       },
       {
         path: 'users/new',
         component: UserForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.Manage' },
+        data: { permission: 'User.Create' },
       },
       {
         path: 'users/:id',
         component: UserForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.Manage' },
+        data: { permission: 'User.Edit' },
       },
       {
         path: 'users/view/:id',
@@ -106,7 +106,7 @@ export const routes: Routes = [
         path: 'users/:id/roles',
         component: UserRoleManage,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.Manage' },
+        data: { permission: 'User.Edit' },
       },
 
       // Customers
@@ -120,13 +120,13 @@ export const routes: Routes = [
         path: 'customers/new',
         component: CustomerForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Customer.Manage' },
+        data: { permission: 'Customer.Create' },
       },
       {
         path: 'customers/:id',
         component: CustomerForm,
         canActivate: [PermissionGuard],
-        data: { permission: 'Customer.Manage' },
+        data: { permission: 'Customer.Edit' },
       },
       {
         path: 'customers/view/:id',
