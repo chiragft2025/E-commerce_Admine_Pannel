@@ -49,7 +49,16 @@ export class UserForm implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       password: [''], // required only on create
       isActive: [true],
-      roleIds: [[] as number[]]
+      roleIds: [[] as number[], Validators.required]
+    });
+
+    // --- Enforce single role immediately when user changes selection (keep last selected)
+    this.form.get('roleIds')?.valueChanges.subscribe((val: any) => {
+      if (Array.isArray(val) && val.length > 1) {
+        const last = val[val.length - 1];
+        // set as single-element array; don't re-emit event to avoid loops
+        this.form.get('roleIds')?.setValue([last], { emitEvent: false });
+      }
     });
 
     // load roles first, then load user if editing
@@ -85,11 +94,14 @@ export class UserForm implements OnInit {
     ).subscribe({
       next: (u) => {
         if (u.roleIds && u.roleIds.length) {
+          // ensure numeric and keep only first (single)
+          const mapped = u.roleIds.map(x => Number(x)).filter(n => !isNaN(n));
+          const single = mapped.length ? [mapped[0]] : [];
           this.form.patchValue({
             userName: u.userName,
             email: u.email,
             isActive: u.isActive,
-            roleIds: u.roleIds.map(x => Number(x))
+            roleIds: single
           });
         } else if (Array.isArray(u.roles) && u.roles.length) {
           const incoming = u.roles;
@@ -99,19 +111,22 @@ export class UserForm implements OnInit {
               .map(name => this.roles.find(r => r.name === name))
               .filter(r => !!r)
               .map(r => r!.id);
+            // keep only first
+            const single = mappedIds.length ? [mappedIds[0]] : [];
             this.form.patchValue({
               userName: u.userName,
               email: u.email,
               isActive: u.isActive,
-              roleIds: mappedIds
+              roleIds: single
             });
           } else {
             const mappedIds = (incoming as any[]).map(x => Number(x.id)).filter(n => !isNaN(n));
+            const single = mappedIds.length ? [mappedIds[0]] : [];
             this.form.patchValue({
               userName: u.userName,
               email: u.email,
               isActive: u.isActive,
-              roleIds: mappedIds
+              roleIds: single
             });
           }
         } else {
@@ -159,12 +174,15 @@ export class UserForm implements OnInit {
       return;
     }
 
+    // normalize and enforce single role: choose first (you can change to last with roleIds[roleIds.length-1])
     const roleIds = (this.form.value.roleIds || []).map((v: any) => Number(v)).filter((n: number) => !isNaN(n));
+    const singleRoleIds = roleIds.length ? [roleIds[0]] : [];
+
     const summaryLines = [
       `Username: ${this.form.value.userName}`,
       `Email: ${this.form.value.email}`,
       `Active: ${this.form.value.isActive ? 'Yes' : 'No'}`,
-      `Roles: ${this.roles.filter(r => roleIds.includes(r.id)).map(r => r.name).join(', ') || '—'}`
+      `Roles: ${this.roles.filter(r => singleRoleIds.includes(r.id)).map(r => r.name).join(', ') || '—'}`
     ];
     const actionVerb = this.isEdit ? 'Update' : 'Create';
 
@@ -177,7 +195,7 @@ export class UserForm implements OnInit {
       cancelButtonText: 'Cancel'
     }).then(confirmResult => {
       if (!confirmResult.isConfirmed) return;
-      this.performSave(roleIds);
+      this.performSave(singleRoleIds);
     });
   }
 

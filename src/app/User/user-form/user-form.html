@@ -44,9 +44,8 @@
         <select class="form-select" formControlName="roleIds" multiple size="6">
           <option *ngFor="let r of roles" [ngValue]="r.id">{{ r.name }}</option>
         </select>
-
-        <div class="text-muted small mt-1" *ngIf="roles.length === 0">No roles found.</div>
       </div>
+      <div class="text-muted small mt-1" *ngIf="roles.length === 0">No roles found.</div>
 
       <!-- Active -->
       <div class="col-12">

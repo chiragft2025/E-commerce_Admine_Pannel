@@ -96,48 +96,105 @@ authService: Auth=null as any;
   add() { this.router.navigateByUrl('/products/new'); }
   edit(p: Product) { this.router.navigateByUrl(`/products/${p.id}`); }
 
-  remove(p: Product) {
-    // SweetAlert2 confirmation + loading + toast; preserves original reload behavior
+ remove(p: Product) {
+  // SweetAlert2 confirmation + loading + toast; preserves original reload behavior
+  Swal.fire({
+    title: `Delete product "${this.escapeHtml(p.name)}"?`,
+    text: 'This action cannot be undone.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete',
+    cancelButtonText: 'Cancel',
+    reverseButtons: true
+  }).then(result => {
+    if (!result.isConfirmed) return;
+
+    // show blocking loading modal
+    this.loading = true;
     Swal.fire({
-      title: `Delete product "${this.escapeHtml(p.name)}"?`,
-      text: 'This action cannot be undone.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    }).then(result => {
-      if (!result.isConfirmed) return;
+      title: 'Deleting...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
 
-      // show blocking loading modal
-      this.loading = true;
-      Swal.fire({
-        title: 'Deleting...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-      });
+    // call delete and handle success/error paths separately
+    this.ps.delete(p.id!).pipe(
+      // ensure we clean up if you use a destroy$ (optional),
+      // otherwise remove takeUntil if not available in this component
+      // takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        // success path: close spinner, reload and toast
+        try { Swal.close(); } catch {}
+        this.loading = false;
 
-      this.ps.delete(p.id!).pipe(
-        map(() => true),
-        catchError(err => {
-          console.error('DELETE PRODUCT ERROR', err);
-          const msg = err?.error?.message ?? 'Failed to delete product';
-          Swal.fire({ title: 'Delete failed', text: msg, icon: 'error' });
-          return of(false);
-        }),
-        finalize(() => {
-          this.loading = false;
-          try { Swal.close(); } catch {}
-        })
-      ).subscribe(ok => {
-        if (!ok) return;
         // reload current page (preserves your original behavior)
         this.load(this.q, this.page);
+
         // show toast
         this.Toast.fire({ icon: 'success', title: 'Product deleted' });
-      });
+      },
+      error: (err: any) => {
+        console.error('DELETE PRODUCT ERROR', err);
+
+        // ensure loading modal is closed before showing our alert
+        try { Swal.close(); } catch {}
+        this.loading = false;
+
+        // === Extract and sanitize a compact message ===
+        let rawMsg: any = null;
+
+        if (err && typeof err === 'object') {
+          if (err.error && typeof err.error === 'object' && err.error.message) {
+            rawMsg = err.error.message;
+          } else if (err.error && typeof err.error === 'string') {
+            rawMsg = err.error;
+          } else if (err.message) {
+            rawMsg = err.message;
+          } else {
+            // last resort: stringify error body
+            try { rawMsg = JSON.stringify(err.error ?? err); } catch { rawMsg = String(err); }
+          }
+        } else {
+          rawMsg = String(err);
+        }
+
+        // If rawMsg is JSON text containing a message property, try to parse it
+        try {
+          if (typeof rawMsg === 'string') {
+            const parsed = JSON.parse(rawMsg);
+            if (parsed && parsed.message) rawMsg = parsed.message;
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+
+        // Convert to string, strip HTML tags, take first useful line, trim and limit length
+        let msg = String(rawMsg || 'Failed to delete product');
+        msg = msg.replace(/<\/?[^>]+(>|$)/g, ''); // strip HTML
+        msg = msg.split(/\r?\n/).map(s => s.trim()).find(s => s.length > 0) ?? msg; // first non-empty line
+        if (msg.length > 300) msg = msg.slice(0, 297) + '...';
+
+        // Show a compact error dialog with only the cleaned message
+        Swal.fire({
+          title: 'Delete failed',
+          text: msg,
+          icon: 'error',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          // keep current list view; if you prefer redirecting to /products, call:
+          // this.router.navigateByUrl('/products').catch(() => {});
+          // otherwise just reload current list to ensure consistent state
+          this.load(this.q, this.page);
+        });
+      },
+      complete: () => {
+        // nothing special here — next/error already handled state
+      }
     });
-  }
+  });
+}
+
 
   // helper to show category title safely
   catTitle(p: Product) {

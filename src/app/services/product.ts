@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Product } from '../models/product.model';
 import { Observable } from 'rxjs';
@@ -47,7 +47,7 @@ export class ProductService {
     return this.http.put<Product>(`${this.base}/${id}`, product);
   }
 
-  delete(id: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  delete(id: number | string): Observable<HttpResponse<void>> {
+    return this.http.delete<void>(`${this.base}/${id}`,{observe:'response'});
   }
 }

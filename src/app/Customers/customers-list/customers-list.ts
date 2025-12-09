@@ -75,47 +75,101 @@ export class CustomerList implements OnInit {
   view(c: Customer) { this.router.navigateByUrl(`/customers/view/${c.id}`); }
 
   remove(c: Customer) {
-    // SweetAlert2 confirmation + loading + toast; preserves original reload behavior
+  // SweetAlert2 confirmation + loading + toast; preserves original reload behavior
+  Swal.fire({
+    title: `Delete customer "${this.escapeHtml(c.fullName)}"?`,
+    text: 'This action cannot be undone.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete',
+    cancelButtonText: 'Cancel',
+    reverseButtons: true
+  }).then(result => {
+    if (!result.isConfirmed) return;
+
+    // show blocking loading modal
+    this.loading = true;
     Swal.fire({
-      title: `Delete customer "${this.escapeHtml(c.fullName)}"?`,
-      text: 'This action cannot be undone.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    }).then(result => {
-      if (!result.isConfirmed) return;
+      title: 'Deleting...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
 
-      // show blocking loading modal
-      this.loading = true;
-      Swal.fire({
-        title: 'Deleting...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-      });
+    // call delete and handle success/error separately
+    this.cs.delete(c.id!).pipe(
+      // if you have a destroy$ in this component, uncomment next line:
+      // takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        // success path: close spinner, reload and toast
+        try { Swal.close(); } catch {}
+        this.loading = false;
 
-      this.cs.delete(c.id!).pipe(
-        map(() => true),
-        catchError(err => {
-          console.error('DELETE CUSTOMER ERROR', err);
-          const msg = err?.error?.message ?? 'Failed to delete customer';
-          Swal.fire({ title: 'Delete failed', text: msg, icon: 'error' });
-          return of(false);
-        }),
-        finalize(() => {
-          this.loading = false;
-          try { Swal.close(); } catch {}
-        })
-      ).subscribe(ok => {
-        if (!ok) return;
         // reload current page (preserves your original behavior)
         this.load(this.q, this.page);
+
         // show toast
         this.Toast.fire({ icon: 'success', title: 'Customer deleted' });
-      });
+      },
+      error: (err: any) => {
+        console.error('DELETE CUSTOMER ERROR', err);
+
+        // ensure loading modal is closed before showing our alert
+        try { Swal.close(); } catch {}
+        this.loading = false;
+
+        // === Extract and sanitize a compact message ===
+        let rawMsg: any = null;
+
+        if (err && typeof err === 'object') {
+          if (err.error && typeof err.error === 'object' && err.error.message) {
+            rawMsg = err.error.message;
+          } else if (err.error && typeof err.error === 'string') {
+            rawMsg = err.error;
+          } else if (err.message) {
+            rawMsg = err.message;
+          } else {
+            // last resort: stringify error body
+            try { rawMsg = JSON.stringify(err.error ?? err); } catch { rawMsg = String(err); }
+          }
+        } else {
+          rawMsg = String(err);
+        }
+
+        // If rawMsg is JSON text containing a message property, try to parse it
+        try {
+          if (typeof rawMsg === 'string') {
+            const parsed = JSON.parse(rawMsg);
+            if (parsed && parsed.message) rawMsg = parsed.message;
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+
+        // Convert to string, strip HTML tags, take first useful line, trim and limit length
+        let msg = String(rawMsg || 'Failed to delete customer');
+        msg = msg.replace(/<\/?[^>]+(>|$)/g, ''); // strip HTML
+        msg = msg.split(/\r?\n/).map(s => s.trim()).find(s => s.length > 0) ?? msg; // first non-empty line
+        if (msg.length > 300) msg = msg.slice(0, 297) + '...';
+
+        // Show a compact error dialog with only the cleaned message
+        Swal.fire({
+          title: 'Delete failed',
+          text: msg,
+          icon: 'error',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          // keep current list view; reload to ensure consistent state
+          this.load(this.q, this.page);
+        });
+      },
+      complete: () => {
+        // nothing else needed here — next/error already handled state
+      }
     });
-  }
+  });
+}
+
 
   get pageCount(): number {
     return Math.max(1, Math.ceil(this.total / this.pageSize));
