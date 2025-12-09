@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { RoleDto, CreateRoleRequest, UpdateRoleRequest } from '../models/role.model';
@@ -26,8 +26,8 @@ export class RoleService {
     return this.http.put<RoleDto>(`${this.base}/${id}`, payload);
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  delete(id: number): Observable<HttpResponse<void>> {
+    return this.http.delete<void>(`${this.base}/${id}`,{observe: 'response'});
   }
 
   // Permissions endpoints

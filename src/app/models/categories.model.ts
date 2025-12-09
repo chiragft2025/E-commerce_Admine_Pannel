@@ -2,6 +2,7 @@ export interface Category {
   id?: number;
   title: string;
   description: string;
+  createdBy?: string;
 }
 export interface CategoryPagedResponse {
   items: Category[];

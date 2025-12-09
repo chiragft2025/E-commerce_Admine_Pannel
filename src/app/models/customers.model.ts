@@ -4,4 +4,5 @@ export interface Customer {
   email: string;
   phone: string;
   address: string;
+  createdBy?: string;
 }

@@ -93,9 +93,9 @@ export class MainLayout implements OnInit, OnDestroy {
   }
 
   profile(): void {
-    const userId = this.auth.getUserId();
-    if (!userId) return;
-    this.router.navigate(['/users/view', userId]);
+    //const userId = this.auth.getUserId();
+   // if (!userId) return;
+    this.router.navigate(['/profile']);
   }
 
   closeSidebar(): void {

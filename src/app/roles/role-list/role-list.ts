@@ -137,12 +137,12 @@ export class RoleList implements OnInit, OnDestroy {
 
   /**
    * Delete with SweetAlert2 confirmation + loading modal.
-   * Replaces native confirm(...) and shows toast on success.
+   * Shows a compact sanitized server message on failure and navigates to /roles after OK.
    */
   remove(r: RoleDto) {
     // Ask for confirmation first
     Swal.fire({
-      title: `Delete role "${r.name}"?`,
+      title: `Delete role "${this.escapeHtml(r.name)}"?`,
       text: 'This action cannot be undone.',
       icon: 'warning',
       showCancelButton: true,
@@ -159,31 +159,13 @@ export class RoleList implements OnInit, OnDestroy {
         didOpen: () => Swal.showLoading()
       });
 
-      // Call delete API
+      // Call delete API (do NOT swallow errors here)
       this.rs.delete(r.id).pipe(
-        takeUntil(this.destroy$),
-        catchError(err => {
-          console.error('DELETE ROLE ERROR', err);
-          // convert to a null result so finalize runs and subscribe error handler receives it
-          return of(null);
-        }),
-        finalize(() => {
-          // ensure the loading modal is closed
-          Swal.close();
-          this.load();
-        })
+        takeUntil(this.destroy$)
       ).subscribe({
-        next: (res) => {
-          // If API returned null because of error, res === null
-          // You might want to inspect server response; here we treat null as failure
-          if (res === null) {
-            Swal.fire({
-              title: 'Failed',
-              text: 'Could not delete the role. Please try again.',
-              icon: 'error'
-            });
-            return;
-          }
+        next: () => {
+          // close spinner first
+          try { Swal.close(); } catch {}
 
           // success: remove from cache and update UI
           this.allRoles = this.allRoles.filter(x => x.id !== r.id);
@@ -193,16 +175,63 @@ export class RoleList implements OnInit, OnDestroy {
 
           // success toast
           this.Toast.fire({ icon: 'success', title: 'Role deleted' });
+
+          // refresh the list (optional)
           this.load();
         },
         error: (err) => {
-          // defensive: should be handled by catchError above, but keep this for completeness
-          console.error('DELETE SUBSCRIBE ERROR', err);
+          console.error('DELETE ROLE ERROR', err);
+
+          // ensure loading modal is closed before showing our alert
+          try { Swal.close(); } catch {}
+
+          // === Extract and sanitize a compact message ===
+          let rawMsg: any = null;
+
+          if (err && typeof err === 'object') {
+            if (err.error && typeof err.error === 'object' && err.error.message) {
+              rawMsg = err.error.message;
+            } else if (err.error && typeof err.error === 'string') {
+              rawMsg = err.error;
+            } else if (err.message) {
+              rawMsg = err.message;
+            } else {
+              // last resort: stringify error body
+              try { rawMsg = JSON.stringify(err.error ?? err); } catch { rawMsg = String(err); }
+            }
+          } else {
+            rawMsg = String(err);
+          }
+
+          // If rawMsg is JSON text containing a message property, try to parse it
+          try {
+            if (typeof rawMsg === 'string') {
+              const parsed = JSON.parse(rawMsg);
+              if (parsed && parsed.message) rawMsg = parsed.message;
+            }
+          } catch (e) {
+            // ignore parse errors
+          }
+
+          // Convert to string, strip HTML tags, take first useful line, trim and limit length
+          let msg = String(rawMsg || 'Could not delete the role.');
+          msg = msg.replace(/<\/?[^>]+(>|$)/g, ''); // strip HTML
+          msg = msg.split(/\r?\n/).map(s => s.trim()).find(s => s.length > 0) ?? msg; // first non-empty line
+          if (msg.length > 300) msg = msg.slice(0, 297) + '...';
+
+          // Show a compact warning with only the cleaned message; after OK redirect to /roles
           Swal.fire({
-            title: 'Error',
-            text: 'An unexpected error occurred while deleting.',
-            icon: 'error'
+            title: 'Cannot delete role',
+            text: msg,
+            icon: 'warning',
+            confirmButtonText: 'OK'
+          }).then(() => {
+            // redirect to list page after user acknowledges
+            this.router.navigateByUrl('/roles').catch(() => {});
           });
+        },
+        complete: () => {
+          // nothing else needed here; load/refresh handled in next/error handlers
         }
       });
     });
@@ -250,5 +279,16 @@ export class RoleList implements OnInit, OnDestroy {
     if (p > this.pageCount) p = this.pageCount;
     this.page = p;
     this.applyFilterAndPagination();
+  }
+
+  // small helper to escape HTML in messages (prevents markup injection)
+  private escapeHtml(s: string | undefined | null): string {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }

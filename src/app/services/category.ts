@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { Category, CategoryPagedResponse } from '../models/categories.model';
@@ -39,7 +39,7 @@ export class CategoryService {
     return this.http.put<Category>(`${this.base}/${id}`, model);
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  delete(id: number): Observable<HttpResponse<void>> {
+    return this.http.delete<void>(`${this.base}/${id}`, { observe: 'response' });
   }
 }

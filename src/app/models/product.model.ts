@@ -20,5 +20,6 @@ export interface Product {
   categoryId?: number | null;
   tags?: ProductTag[];
   createdAt?: string;
+  createdBy?: string;
   updatedAt?: string;
 }

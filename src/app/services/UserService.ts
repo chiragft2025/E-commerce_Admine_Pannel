@@ -34,6 +34,10 @@ export class UserService {
     return this.http.delete<void>(`${this.base}/${id}`);
   }
 
+  profile(): Observable<User> {
+    return this.http.get<User>(`${this.base}/profile`);
+  }
+
   assignRoles(id: number | string, roleIds: number[]): Observable<void> {
     const payload = { roleIds };
     return this.http.post<void>(`${this.base}/${id}/roles`, payload);

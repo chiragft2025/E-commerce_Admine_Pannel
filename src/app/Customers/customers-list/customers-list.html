@@ -54,6 +54,7 @@
           <th scope="col">Email</th>
           <th scope="col">Phone</th>
           <th scope="col">Address</th>
+          <th scope="col"  *appHasPermission="'Role.Manage'">CreatedBy</th>
           <th scope="col" class="text-end"  *appHasPermission="{ perms: ['Customer.Edit', 'Customer.Delete'], mode: 'any' }">Actions</th>
         </tr>
       </thead>
@@ -64,6 +65,7 @@
           <td data-label="Email">{{ c.email }}</td>
           <td data-label="Phone">{{ c.phone }}</td>
           <td data-label="Address">{{ c.address }}</td>
+           <td data-label="CreatedBy"  *appHasPermission="'Role.Manage'">{{ c.createdBy }}</td>
           <td data-label="Actions" class="text-end"  *appHasPermission="{ perms: ['Customer.Edit', 'Customer.Delete'], mode: 'any' }">
             <div class="btn-group btn-group-sm" role="group" aria-label="Customer actions">
               <button

@@ -23,6 +23,7 @@ import { RoleForm } from './roles/role-form/role-form';
 import { UserDetails } from './User/user-details/user-details';
 import { PermissionGuard } from './guards/permission.guard';
 import { UserRoleManage } from './User/user-role-manage/user-role-manage';
+import { UserProfile } from './User/user-profile/user-profile';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -101,6 +102,10 @@ export const routes: Routes = [
         component: UserDetails,
         canActivate: [PermissionGuard],
         data: { permission: 'User.View' },
+      },
+      {
+        path:'profile',
+        component:UserProfile
       },
       {
         path: 'users/:id/roles',

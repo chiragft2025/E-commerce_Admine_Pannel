@@ -160,57 +160,100 @@ export class CategoryList implements OnInit, OnDestroy {
     this.router.navigateByUrl(`/categories/${cat.id}`).catch(() => {});
   }
 
-  remove(cat: Category): void {
-    // use SweetAlert2 confirmation + loading + toast
+remove(cat: Category): void {
+  Swal.fire({
+    title: `Delete "${this.escapeHtml(cat.title)}"?`,
+    text: 'This action cannot be undone.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete',
+    cancelButtonText: 'Cancel',
+    reverseButtons: true
+  }).then(result => {
+    if (!result.isConfirmed) return;
+
+    this.loading = true;
     Swal.fire({
-      title: `Delete "${this.escapeHtml(cat.title)}"?`,
-      text: 'This action cannot be undone.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    }).then(result => {
-      if (!result.isConfirmed) return;
+      title: 'Deleting...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
 
-      // show blocking loading modal
-      this.loading = true;
-      Swal.fire({
-        title: 'Deleting...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-      });
+    (this.cs.delete(cat.id!) as any).subscribe({
+      next: () => {
+        // success path
+        this.loading = false;
+        try { Swal.close(); } catch {}
 
-      // call delete and handle result without changing your original logic
-      (this.cs.delete(cat.id!) as any).pipe(
-        // normalize to boolean
-        map(() => true),
-        catchError((err: any) => {
-          console.error('Delete failed', err);
-          const msg = err?.error?.message ?? 'Delete failed';
-          Swal.fire({ title: 'Delete failed', text: msg, icon: 'error' });
-          return of(false);
-        }),
-        finalize(() => {
-          this.loading = false;
-          try { Swal.close(); } catch {}
-        })
-      ).subscribe((ok: boolean) => {
-        if (!ok) return;
-
-        // same behavior as before: if last item on page and page > 1, go back a page
         if (this.categories.length === 1 && this.page > 1) {
           this.page = this.page - 1;
         }
-
-        // reload same way you did originally
         this.load(undefined, this.page);
-
-        // toast success
         this.Toast.fire({ icon: 'success', title: 'Category deleted' });
-      });
+      },
+      error: (err: any) => {
+        console.error('Delete failed', err);
+
+        // stop loading and close the "Deleting..." modal first
+        this.loading = false;
+        try { Swal.close(); } catch {}
+
+        // === Extract and sanitize a compact message ===
+        let rawMsg: any = null;
+
+        // prefer structured message
+        if (err && typeof err === 'object') {
+          if (err.error && typeof err.error === 'object' && err.error.message) {
+            rawMsg = err.error.message;
+          } else if (err.error && typeof err.error === 'string') {
+            rawMsg = err.error;
+          } else if (err.error && typeof err.error === 'object') {
+            // fallback to JSON-stringify then try to find a message
+            rawMsg = JSON.stringify(err.error);
+          } else if (err.message) {
+            rawMsg = err.message;
+          } else {
+            rawMsg = String(err);
+          }
+        } else {
+          rawMsg = String(err);
+        }
+
+        // If rawMsg is JSON text containing a message property, try to parse it
+        try {
+          if (typeof rawMsg === 'string') {
+            const parsed = JSON.parse(rawMsg);
+            if (parsed && parsed.message) rawMsg = parsed.message;
+          }
+        } catch (e) {
+          // ignore parse errors
+        }
+
+        // Convert to string, strip HTML tags, take first line, trim and limit length
+        let msg = String(rawMsg || 'Delete failed');
+        // strip HTML tags if any
+        msg = msg.replace(/<\/?[^>]+(>|$)/g, '');
+        // take first non-empty line (avoid stack traces)
+        msg = msg.split(/\r?\n/).map(s => s.trim()).find(s => s.length > 0) ?? msg;
+        // truncate to ~300 chars to avoid huge dialogs
+        if (msg.length > 300) msg = msg.slice(0, 297) + '...';
+
+        // Show a compact warning with only the cleaned message.
+        Swal.fire({
+          title: 'Cannot delete category',
+          text: msg,
+          icon: 'warning',
+          confirmButtonText: 'OK'
+        }).then(() => {
+          // after user clicks OK, go back to list page
+          // if you're already on the list, this simply refreshes / keeps UX consistent
+          this.router.navigateByUrl('/categories').catch(() => {});
+        });
+      }
     });
-  }
+  });
+}
+
 
   prev(): void {
     if (this.page > 1) {

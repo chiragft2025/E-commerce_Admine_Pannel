@@ -54,6 +54,7 @@
           <th>Category</th>
           <th>Tags</th>
           <th>Active</th>
+          <th  *appHasPermission="{ perms: ['Role.Manage'], mode: 'any' }">CreatedBy</th>
           <th class="text-end"  *appHasPermission="{ perms: ['Product.Edit', 'Product.Delete'], mode: 'any' }" >Actions</th>
         </tr>
       </thead>
@@ -67,6 +68,7 @@
           <td data-label="Category">{{ catTitle(p) }}</td>
           <td data-label="Tags">{{ tagsList(p) }}</td>
           <td data-label="Active">{{ p.isActive ? 'Yes' : 'No' }}</td>
+          <td data-label="CreatedBy"  *appHasPermission="{ perms: ['Role.Manage'], mode: 'any' }">{{p.createdBy}}</td>
           <td class="text-end" data-label="Actions"  *appHasPermission="{ perms: ['Product.Edit', 'Product.Delete'], mode: 'any' }">
             <div class="btn-group btn-group-sm" role="group" aria-label="Product actions">
               <button class="btn btn-outline-primary" *appHasPermission="'Product.Edit'" (click)="edit(p)" title="Edit" aria-label="Edit product">

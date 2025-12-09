@@ -8,6 +8,7 @@ import { HasPermissionDirective } from '../../directives/has-permission.directiv
 import Swal from 'sweetalert2';
 import { of } from 'rxjs';
 import { catchError, finalize, map } from 'rxjs/operators';
+import { Auth } from '../../services/auth';
 
 @Component({
   selector: 'app-products-list',
@@ -35,6 +36,7 @@ export class ProductsList implements OnInit {
     showConfirmButton: false,
     timerProgressBar: true
   });
+authService: Auth=null as any;
 
   constructor(private ps: ProductService, private router: Router) {}
 

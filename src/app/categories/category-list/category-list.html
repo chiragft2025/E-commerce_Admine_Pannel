@@ -53,6 +53,7 @@
         <tr>
           <th scope="col">Title</th>
           <th scope="col">Description</th>
+          <th scope="col" *appHasPermission="{ perms: ['Role.Manage'], mode: 'any' }"> CreatedBy</th>
           <th scope="col" class="text-end" *appHasPermission="{ perms: ['Category.Edit', 'Category.Delete'], mode: 'any' }">Actions</th>
         </tr>
       </thead>
@@ -61,6 +62,7 @@
         <tr *ngFor="let c of categories">
           <td data-label="Title">{{ c.title }}</td>
           <td data-label="Description">{{ c.description }}</td>
+          <td data-label="CreatedBy" *appHasPermission="{ perms: ['Role.Manage'], mode: 'any' }" >{{ c.createdBy }}</td>
           <td data-label="Actions" class="text-end" class="text-end"  *appHasPermission="{ perms: ['Category.Edit', 'Category.Delete'], mode: 'any' }"  >
             <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
               <button *appHasPermission="'Category.Edit'" class="btn btn-outline-primary" (click)="edit(c)" title="Edit" aria-label="Edit category">
