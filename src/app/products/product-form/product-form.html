@@ -37,7 +37,7 @@
         <input type="number" min="0" class="form-control" formControlName="price" />
         <div class="text-danger small mt-1"
              *ngIf="form.get('price')?.touched && form.get('price')?.invalid">
-          Must be 0 or more
+          Must be more than 0
         </div>
       </div>
 
@@ -47,7 +47,7 @@
         <input type="number" min="0" class="form-control" formControlName="stock" />
         <div class="text-danger small mt-1"
              *ngIf="form.get('stock')?.touched && form.get('stock')?.invalid">
-          Must be 0 or more
+          Must be more than 0
         </div>
       </div>
 

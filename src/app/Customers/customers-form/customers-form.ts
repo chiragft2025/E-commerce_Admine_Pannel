@@ -41,10 +41,10 @@ export class CustomerForm implements OnInit {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      fullName: ['', Validators.required],
+      fullName: ['', [Validators.required,Validators.maxLength(20)]],
       email: ['', [Validators.required, Validators.email]],
-      phone: [''],
-      address: ['']
+      phone: ['',[Validators.required,Validators.maxLength(12),Validators.minLength(10)]],
+      address: ['',[ Validators.required]]
     });
 
     const idParam = this.route.snapshot.paramMap.get('id');

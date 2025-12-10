@@ -16,7 +16,7 @@
           <a routerLink="/products" routerLinkActive="active" class="nav-link" *appHasPermission="'Product.View'" (click)="toggleSidebar()">Products</a>
           <a routerLink="/customers" routerLinkActive="active" class="nav-link" *appHasPermission="'Customer.View'" (click)="toggleSidebar()">Customers</a>
           <a routerLink="/orders" routerLinkActive="active" class="nav-link" *appHasPermission="'Order.View'" (click)="toggleSidebar()">Orders</a>
-          <a routerLink="/users" routerLinkActive="active" class="nav-link" *appHasPermission="'User.Manage'" (click)="toggleSidebar()">Users</a>
+          <a routerLink="/users" routerLinkActive="active" class="nav-link" *appHasPermission="'User.View'" (click)="toggleSidebar()">Users</a>
           <a routerLink="/roles" routerLinkActive="active" class="nav-link" *appHasPermission="'Role.Manage'" (click)="toggleSidebar()">Roles</a>
         </nav>
       </div>

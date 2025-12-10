@@ -65,7 +65,7 @@
           <td data-label="ID">OD_2025_{{ o.id }}</td>
           <td data-label="Placed">{{ o.placedAt | date: 'short' }}</td>
           <td data-label="Customer">{{ o.customer?.fullName }}</td>
-          <td data-label="Status" >{{ Orderstatus[o.status] }}</td>
+          <td data-label="Status" >{{o.status}}</td>
           <td data-label="CreatedBy"  *appHasPermission="'Role.Manage'">{{ o.createdBy }}</td>
           <td data-label="Total" class="text-end">{{ o.totalAmount | number: '1.2-2' }}</td>
           <td data-label="Actions" class="text-end" *appHasPermission="'Order.Manage'">

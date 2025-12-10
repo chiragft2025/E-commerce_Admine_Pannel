@@ -11,8 +11,13 @@
 
       <div class="text-danger small mt-1"
            *ngIf="form.get('fullName')?.touched && form.get('fullName')?.invalid && form.get('fullName')?.hasError('required')">
-        * Full Name is required
+        * Full Name is required and cannot be more than 25 characters
       </div>
+
+      <div class="text-danger small mt-1"
+       *ngIf="form.get('fullName')?.touched && form.get('fullName')?.hasError('maxlength')">
+    * Full Name cannot be more than {{ form.get('fullName')?.errors?.['maxlength']?.requiredLength }} characters
+  </div>
 
       <!-- Duplicate error from server -->
       <div class="text-danger small mt-1"
@@ -43,17 +48,39 @@
       </div>
     </div>
 
-    <!-- Phone -->
-    <div class="mb-3">
-      <label class="form-label">Phone</label>
-      <input type="text" class="form-control" formControlName="phone" />
-    </div>
+   <!-- Phone -->
+<div class="mb-3">
+  <label class="form-label">Phone</label>
+  <input type="text" class="form-control" formControlName="phone" />
 
-    <!-- Address -->
-    <div class="mb-3">
-      <label class="form-label">Address</label>
-      <textarea class="form-control" formControlName="address" rows="3"></textarea>
-    </div>
+  <div class="text-danger small mt-1"
+       *ngIf="form.get('phone')?.touched && form.get('phone')?.hasError('required')">
+    * Phone is required
+  </div>
+
+  <div class="text-danger small mt-1"
+       *ngIf="form.get('phone')?.touched && form.get('phone')?.hasError('minlength')">
+    * Phone must be at least {{ form.get('phone')?.errors?.['minlength']?.requiredLength }} digits
+  </div>
+
+  <div class="text-danger small mt-1"
+       *ngIf="form.get('phone')?.touched && form.get('phone')?.hasError('maxlength')">
+    * Phone cannot be more than {{ form.get('phone')?.errors?.['maxlength']?.requiredLength }} digits
+  </div>
+</div>
+
+
+<!-- Address -->
+<div class="mb-3">
+  <label class="form-label">Address</label>
+  <textarea class="form-control" formControlName="address" rows="3"></textarea>
+
+  <div class="text-danger small mt-1"
+       *ngIf="form.get('address')?.touched && form.get('address')?.hasError('required')">
+    * Address is required
+  </div>
+</div>
+
 
     <!-- Global server error (non-field) -->
     <div *ngIf="error" class="alert alert-danger small">

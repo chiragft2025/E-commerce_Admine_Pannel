@@ -51,7 +51,7 @@ export class ProductForm implements OnInit {
       name: ['', Validators.required],
       sku: ['', Validators.required],
       description: [''],
-      price: [0, [Validators.required, Validators.min(0)]],
+      price: [0, [Validators.required, Validators.min(1)]],
       stock: [1, [Validators.required, Validators.min(1)]],
       isActive: [true],
       categoryId: ['', Validators.required],
