@@ -130,73 +130,108 @@ export class UserList implements OnInit, OnDestroy {
   /**
    * Delete user with SweetAlert2 confirmation + loading modal, toast on success.
    */
-  remove(u: User) {
-    if (!u || u.id == null) {
-      console.warn('remove called with invalid user', u);
-      return;
-    }
-
-    // confirmation dialog
-    Swal.fire({
-      title: `Delete user "${u.userName}"?`,
-      text: 'This action cannot be undone.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete',
-      cancelButtonText: 'Cancel',
-      reverseButtons: true
-    }).then(result => {
-      if (!result.isConfirmed) return;
-
-      // show blocking loading modal
-      Swal.fire({
-        title: 'Deleting user...',
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading()
-      });
-
-      // call delete API
-      this.us.delete(u.id!).pipe(
-        takeUntil(this.destroy$),
-        catchError(err => {
-          console.error('DELETE USER ERROR', err);
-          // return observable with null to indicate failure
-          return of(null);
-        }),
-        finalize(() => {
-          // always close loading modal
-          Swal.close();
-          this.load();
-        })
-      ).subscribe({
-        next: (res) => {
-          if (res === null) {
-            // failed
-            Swal.fire({ title: 'Failed', text: 'Could not delete the user. Please try again.', icon: 'error' });
-            return;
-          }
-
-          // success: reload or remove from cache
-          // Option A: re-fetch current page
-          this.load(this.search, this.page);
-
-          // Option B (alternative): remove from allUsers and re-apply pagination
-          // this.allUsers = this.allUsers.filter(x => x.id !== u.id);
-          // this.total = this.allUsers.length;
-          // if (this.page > this.pageCount) this.page = this.pageCount;
-          // this.applyPagination();
-
-          // success toast
-          this.Toast.fire({ icon: 'success', title: 'User deleted' });
-        },
-        error: (err) => {
-          // defensive; should be handled by catchError above
-          console.error('DELETE SUBSCRIBE ERROR', err);
-          Swal.fire({ title: 'Error', text: 'An unexpected error occurred while deleting.', icon: 'error' });
-        }
-      });
-    });
+  remove(u: User): void {
+  if (!u || u.id == null) {
+    console.warn('remove called with invalid user', u);
+    return;
   }
+
+  Swal.fire({
+    title: `Delete "${this.escapeHtml(u.userName || String(u.id))}"?`,
+    text: 'This action cannot be undone.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete',
+    cancelButtonText: 'Cancel',
+    reverseButtons: true
+  }).then(result => {
+    if (!result.isConfirmed) return;
+
+    this.loading = true;
+
+    Swal.fire({
+      title: 'Deleting...',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
+
+    (this.us.delete(u.id!) as any).subscribe({
+      next: () => {
+        this.loading = false;
+        try { Swal.close(); } catch {}
+
+        // If last item on page, move back one page
+        if (this.users.length === 1 && this.page > 1) {
+          this.page = this.page - 1;
+        }
+
+        this.load(this.search, this.page);
+
+        this.Toast.fire({
+          icon: 'success',
+          title: 'User deleted'
+        });
+      },
+      error: (err: any) => {
+        console.error('Delete failed', err);
+
+        this.loading = false;
+        try { Swal.close(); } catch {}
+
+        // === SAME ERROR HANDLING AS CATEGORY LIST ===
+        let rawMsg: any = null;
+
+        if (err && typeof err === 'object') {
+          if (err.error && typeof err.error === 'object' && err.error.message) {
+            rawMsg = err.error.message;
+          } else if (err.error && typeof err.error === 'string') {
+            rawMsg = err.error;
+          } else if (err.error && typeof err.error === 'object') {
+            rawMsg = JSON.stringify(err.error);
+          } else if (err.message) {
+            rawMsg = err.message;
+          } else {
+            rawMsg = String(err);
+          }
+        } else {
+          rawMsg = String(err);
+        }
+
+        // Try parse JSON error like {"message":"..."}
+        try {
+          if (typeof rawMsg === 'string') {
+            const parsed = JSON.parse(rawMsg);
+            if (parsed?.message) rawMsg = parsed.message;
+          }
+        } catch {}
+
+        // Clean message: remove HTML, take only 1 line, trim length
+        let msg = String(rawMsg || 'Delete failed');
+        msg = msg.replace(/<\/?[^>]+(>|$)/g, ''); // strip HTML
+        msg = msg.split(/\r?\n/).map(x => x.trim()).find(Boolean) ?? msg;
+        if (msg.length > 300) msg = msg.slice(0, 297) + '...';
+
+        Swal.fire({
+          title: 'Cannot delete user',
+          text: msg,
+          icon: 'warning',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  });
+}
+
+// Same helper from CategoryList (copy it into UserList)
+private escapeHtml(s: string | undefined | null): string {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
   changeRoles(u: User) {
 

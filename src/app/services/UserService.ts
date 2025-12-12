@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { User, CreateUserRequest, UpdateUserRequest } from '../models/User.model';
@@ -30,8 +30,8 @@ export class UserService {
     return this.http.put<void>(`${this.base}/${id}`, model);
   }
 
-  delete(id: number | string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  delete(id: number | string): Observable<HttpResponse<void>> {
+    return this.http.delete<void>(`${this.base}/${id}`,{observe: 'response'});
   }
 
   profile(): Observable<User> {
