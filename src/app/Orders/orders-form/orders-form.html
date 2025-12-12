@@ -6,7 +6,7 @@
 
     <!-- Customer -->
     <div class="mb-3">
-      <label class="form-label">Customer</label>
+      <label class="form-label">Customer<span class="requried1">*</span></label>
       <select class="form-select" formControlName="customerId">
         <option [ngValue]="null">-- select customer --</option>
         <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.fullName }}</option>
@@ -20,13 +20,13 @@
 
     <!-- Shipping Address -->
     <div class="mb-3">
-      <label class="form-label">Shipping Address (optional)</label>
+      <label class="form-label">Shipping Address</label>
       <textarea class="form-control" rows="2" formControlName="shippingAddress"></textarea>
     </div>
 
     <!-- Items -->
     <div class="mb-3">
-      <label class="form-label">Items</label>
+      <label class="form-label">Items<span class="requried1">*</span></label>
 
       <div formArrayName="items" class="d-flex flex-column gap-3">
 
@@ -34,7 +34,7 @@
           <div class="row g-2 align-items-center">
             <!-- Product select -->
             <div class="col-12 col-md-3">
-              <label class="form-label small d-block">Product</label>
+              <label class="form-label small d-block">Product<span class="requried1">*</span></label>
               <select class="form-select form-select-sm" formControlName="productId">
                 <option [ngValue]="null">-- select product --</option>
                 <option *ngFor="let p of products" [ngValue]="p.id">{{ p.name }}</option>
@@ -66,7 +66,7 @@
 
             <!-- Quantity + Remove -->
             <div class="col-12 col-md-3">
-              <label class="form-label small d-block">Quantity</label>
+              <label class="form-label small d-block">Quantity<span class="requried1">*</span></label>
               <div class="d-flex gap-2 align-items-start">
                 <input type="number" class="form-control form-control-sm" formControlName="quantity" min="1" />
 

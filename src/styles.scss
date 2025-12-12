@@ -13,6 +13,10 @@ html, body, app-root {
   flex-direction: column !important;
   min-height: 100vh !important;
 }
+.requried1{
+  color: red;
+  font-weight: bold;
+}
 
 /* Topbar stays at the top (sticky) */
 .topbar {

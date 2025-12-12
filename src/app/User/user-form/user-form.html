@@ -7,7 +7,7 @@
     <div class="row g-3">
       <!-- Username -->
       <div class="col-12 col-md-6">
-        <label class="form-label">Username</label>
+        <label class="form-label">Username<span class="requried1">*</span></label>
         <input type="text" class="form-control" formControlName="userName" />
         <div class="text-danger small mt-1"
              *ngIf="form.get('userName')?.touched && form.get('userName')?.invalid">
@@ -17,7 +17,7 @@
 
       <!-- Email -->
       <div class="col-12 col-md-6">
-        <label class="form-label">Email</label>
+        <label class="form-label">Email<span class="requried1">*</span></label>
         <input type="email" class="form-control" formControlName="email" />
         <div class="text-danger small mt-1"
              *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
@@ -27,7 +27,7 @@
 
       <!-- Password -->
       <div class="col-12 col-md-6">
-        <label class="form-label">Password</label>
+        <label class="form-label">Password<span class="requried1">*</span></label>
         <input type="password" class="form-control" formControlName="password" />
         <div  class="text-danger small mt-1"
              *ngIf="!isEdit && form.get('password')?.touched && form.get('password')?.invalid">
@@ -40,7 +40,7 @@
 
       <!-- Roles (only when creating) -->
       <div class="col-12 col-md-6" *ngIf="!isEdit">
-        <label class="form-label">Roles</label>
+        <label class="form-label">Roles<span class="requried1">*</span></label>
         <select class="form-select" formControlName="roleIds" multiple size="6">
           <option *ngFor="let r of roles" [ngValue]="r.id">{{ r.name }}</option>
         </select>

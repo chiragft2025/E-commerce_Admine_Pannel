@@ -6,7 +6,7 @@
 
     <!-- Name -->
     <div class="mb-3">
-      <label class="form-label">Name</label>
+      <label class="form-label">Name<span class="requried1">*</span></label>
       <input type="text" class="form-control" formControlName="name" />
       <div class="text-danger small mt-1" *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
         Required
@@ -27,7 +27,7 @@
 
     <!-- Permissions block -->
     <div class="permissions-block mb-3">
-      <h5 class="mb-3">Permissions</h5>
+      <h5 class="mb-3">Permissions<span class="requried1">*</span></h5>
 
       <div *ngIf="permissions.length === 0" class="text-muted mb-2">
         No permissions available.

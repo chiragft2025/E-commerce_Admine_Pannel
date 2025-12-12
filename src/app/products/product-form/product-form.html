@@ -7,7 +7,7 @@
     <div class="row g-3">
       <!-- Name -->
       <div class="col-12 col-md-6">
-        <label class="form-label">Name</label>
+        <label class="form-label">Name<span class="requried1">*</span></label>
         <input type="text" class="form-control" formControlName="name" />
         <div class="text-danger small mt-1"
              *ngIf="form.get('name')?.touched && form.get('name')?.invalid">
@@ -17,7 +17,7 @@
 
       <!-- SKU -->
       <div class="col-12 col-md-6">
-        <label class="form-label">SKU</label>
+        <label class="form-label">SKU<span class="requried1">*</span></label>
         <input type="text" class="form-control" formControlName="sku" />
         <div class="text-danger small mt-1"
              *ngIf="form.get('sku')?.touched && form.get('sku')?.invalid">
@@ -33,7 +33,7 @@
 
       <!-- Price -->
       <div class="col-12 col-md-4">
-        <label class="form-label">Price</label>
+        <label class="form-label">Price<span class="requried1">*</span></label>
         <input type="number" min="0" class="form-control" formControlName="price" />
         <div class="text-danger small mt-1"
              *ngIf="form.get('price')?.touched && form.get('price')?.invalid">
@@ -43,7 +43,7 @@
 
       <!-- Stock -->
       <div class="col-12 col-md-4">
-        <label class="form-label">Stock</label>
+        <label class="form-label">Stock<span class="requried1">*</span></label>
         <input type="number" min="0" class="form-control" formControlName="stock" />
         <div class="text-danger small mt-1"
              *ngIf="form.get('stock')?.touched && form.get('stock')?.invalid">
@@ -61,7 +61,7 @@
 
       <!-- Category -->
       <div class="col-12 col-md-6">
-        <label class="form-label">Category</label>
+        <label class="form-label">Category<span class="requried1">*</span></label>
         <select class="form-select" formControlName="categoryId">
           <option value="">-- Select Category --</option>
           <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.title }}</option>
