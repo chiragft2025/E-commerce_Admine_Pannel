@@ -1,4 +1,3 @@
-import { Paged } from './../../services/product';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -13,9 +12,9 @@ import { ProductService } from '../../services/product';
 import { CustomerService } from '../../services/customer.service';
 import { OrderService } from '../../services/order.service';
 import { Product } from '../../models/product.model';
+import { Customer } from '../../models/customers.model';
 import { Subject, of } from 'rxjs';
 import { debounceTime, takeUntil, catchError, finalize, map } from 'rxjs/operators';
-import { Customer } from '../../models/customers.model';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -27,18 +26,17 @@ import Swal from 'sweetalert2';
 })
 export class OrderForm implements OnInit, OnDestroy {
   form!: FormGroup;
-  customers: any[] = [];
+  customers: Customer[] = [];
   products: Product[] = [];
+
   loading = false;
   loadingCustomers = false;
   loadingProducts = false;
   saving = false;
-  error: any = null;
+  error: string | null = null;
+
   private destroy$ = new Subject<void>();
 
-  
-
-  // toast helper
   private Toast = Swal.mixin({
     toast: true,
     position: 'top-end',
@@ -67,63 +65,58 @@ export class OrderForm implements OnInit, OnDestroy {
     this.addItem();
   }
 
-  ngOnDestroy(): void {
+  ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
   }
 
+  // ----------------------------------------------
+  // LOAD DATA
+  // ----------------------------------------------
+
   private loadCustomers() {
     this.loadingCustomers = true;
     this.cs.listPaged?.(undefined, 1, 1000)
-      .pipe(
+      ?.pipe(
         takeUntil(this.destroy$),
         catchError(err => {
           console.error('Failed to load customers', err);
-          this.error = 'Failed to load customers. Try again later.';
-          return of({ items: [], total: 0, page: 1, pageSize: 0 } as Paged<Customer>);
+          return of({ items: [] });
         }),
-        finalize(() => { this.loadingCustomers = false; })
+        finalize(() => this.loadingCustomers = false)
       )
-      .subscribe((paged: Paged<Customer>) => {
-        this.customers = paged.items || [];
-      });
+      .subscribe(res => this.customers = res.items || []);
   }
 
   private loadProducts() {
     this.loadingProducts = true;
-    const obs = (this.ps.listPaged?.() ?? this.ps.listPaged?.(undefined, 1, 1000));
-    if (!obs) {
-      this.loadingProducts = false;
-      return;
-    }
+    const obs = this.ps.listPaged?.() ?? this.ps.listPaged?.(undefined, 1, 1000);
+    if (!obs) return;
 
     obs.pipe(
       takeUntil(this.destroy$),
       catchError(err => {
         console.error('Failed to load products', err);
-        this.loadingProducts = false;
-        return of([] as Product[]);
+        return of([]);
       }),
-      finalize(() => { this.loadingProducts = false; })
+      finalize(() => this.loadingProducts = false)
     ).subscribe((res: any) => {
-      if (!res) {
-        this.products = [];
-      } else if (Array.isArray(res)) {
-        this.products = res;
-      } else if (Array.isArray(res.items)) {
-        this.products = res.items;
-      } else {
-        this.products = Array.isArray(res.data) ? res.data : [];
-      }
+      if (Array.isArray(res)) this.products = res;
+      else if (Array.isArray(res.items)) this.products = res.items;
+      else this.products = [];
     });
   }
+
+  // ----------------------------------------------
+  // FORM HELPERS
+  // ----------------------------------------------
 
   get itemsArr(): FormArray {
     return this.form.get('items') as FormArray;
   }
 
   addItem() {
-    const fg = this.fb.group({
+    const group = this.fb.group({
       productId: [null, Validators.required],
       productName: [''],
       unitPrice: [0, Validators.required],
@@ -131,69 +124,24 @@ export class OrderForm implements OnInit, OnDestroy {
       quantity: [1, [Validators.required, Validators.min(1)]]
     });
 
-    const productIdControl = fg.get('productId');
-    if (productIdControl) {
-      productIdControl.valueChanges
-        .pipe(debounceTime(200), takeUntil(this.destroy$))
-        .subscribe((pid: number | null) => {
-          if (!pid) {
-            fg.patchValue({ productName: '', unitPrice: 0, stock: 0 }, { emitEvent: false });
-            return;
-          }
-
-          // Try to find selected product in the already-loaded products list
-          const local = this.products.find(p => p.id === pid);
-          if (local) {
-            fg.patchValue(
-              { productName: local.name ?? '', unitPrice: local.price ?? 0, stock: local.stock ?? 0 },
-              { emitEvent: false }
-            );
-            // clear any custom quantity-stock error
-            const qtyCtrl = fg.get('quantity');
-            if (qtyCtrl && qtyCtrl.errors && qtyCtrl.errors['exceedsStock']) {
-              const errs = { ...(qtyCtrl.errors || {}) };
-              delete errs['exceedsStock'];
-              qtyCtrl.setErrors(Object.keys(errs).length ? errs : null);
-            }
-            return;
-          }
-
-          // fallback: fetch single product by id
-          this.ps.get(pid).pipe(takeUntil(this.destroy$)).subscribe({
-            next: (p: Product) => {
-              fg.patchValue(
-                { productName: p.name ?? '', unitPrice: p.price ?? 0, stock: p.stock ?? 0 },
-                { emitEvent: false }
-              );
+    // When product changes, update fields
+    group.get('productId')?.valueChanges
+      .pipe(debounceTime(200), takeUntil(this.destroy$))
+      .subscribe(pid => {
+        const product = this.products.find(p => p.id === pid);
+        if (product) {
+          group.patchValue(
+            {
+              productName: product.name,
+              unitPrice: product.price,
+              stock: product.stock
             },
-            error: (err) => {
-              console.error('Product lookup failed', err);
-              fg.patchValue({ productName: '(not found)', unitPrice: 0, stock: 0 }, { emitEvent: false });
-            }
-          });
-        }, (err) => {
-          console.error('valueChanges error', err);
-        });
-    }
-
-    // When quantity changes, ensure it doesn't exceed stock (set custom error 'exceedsStock')
-    const qtyCtrl = fg.get('quantity');
-    if (qtyCtrl) {
-      qtyCtrl.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-        const q = Number(fg.get('quantity')!.value) || 0;
-        const stock = Number(fg.get('stock')!.value) || 0;
-        if (q > stock) {
-          const existing = fg.get('quantity')!.errors || {};
-          fg.get('quantity')!.setErrors({ ...existing, exceedsStock: true });
-        } else {
-          const existing = fg.get('quantity')!.errors || {};
-          if (existing['exceedsStock']) delete existing['exceedsStock'];
-          fg.get('quantity')!.setErrors(Object.keys(existing).length ? existing : null);
+            { emitEvent: false }
+          );
         }
       });
-    }
 
-    this.itemsArr.push(fg);
+    this.itemsArr.push(group);
   }
 
   removeItem(i: number) {
@@ -202,84 +150,62 @@ export class OrderForm implements OnInit, OnDestroy {
 
   get total(): number {
     return this.itemsArr.controls.reduce((sum, c) => {
-      const q = Number(c.get('quantity')!.value) || 0;
-      const up = Number(c.get('unitPrice')!.value) || 0;
-      return sum + q * up;
+      return sum + (Number(c.get('quantity')?.value) * Number(c.get('unitPrice')?.value));
     }, 0);
   }
 
+  // ----------------------------------------------
+  // SUBMIT ORDER
+  // ----------------------------------------------
+
   submit() {
     this.error = null;
-
-    // mark all to show validation messages
     this.form.markAllAsTouched();
 
-    // customer required
-    if (!this.form.value.customerId) {
-      this.error = 'Customer is required.';
+    if (this.form.invalid) {
+      this.error = "Please fix validation errors.";
       return;
     }
 
-    // at least one item
+    // Validate item list
     if (this.itemsArr.length === 0) {
-      this.error = 'At least one product is required.';
+      this.error = "At least one item is required.";
       return;
     }
 
-    // validate each item and detect duplicate product ids
-    const seen = new Set<number>();
-    for (const c of this.itemsArr.controls) {
-      const pid = c.get('productId')!.value;
-      const qty = Number(c.get('quantity')!.value);
-      const stock = Number(c.get('stock')!.value);
+    // Build correct backend format
+    const items = this.itemsArr.controls.map(c => {
+      const pid = Number(c.get('productId')!.value);
+      const product = this.products.find(p => p.id === pid);
 
-      if (!pid) {
-        this.error = 'Each item must have a selected product.';
-        return;
-      }
-
-      if (!qty || qty < 1) {
-        this.error = 'Quantity must be at least 1.';
-        return;
-      }
-
-      if (qty > stock) {
-        this.error = `Insufficient stock for ${c.get('productName')!.value || 'product'}.`;
-        return;
-      }
-
-      if (seen.has(pid)) {
-        this.error = 'Duplicate product in order. Remove or combine quantities.';
-        return;
-      }
-      seen.add(pid);
-    }
+      return {
+        id: pid,  // backend requires "id"
+        quantity: Number(c.get('quantity')!.value),
+        unitPrice: Number(c.get('unitPrice')!.value),
+        product: {
+          id: product?.id ?? pid,
+          name: product?.name ?? "",
+          sku: product?.sku ?? "unknown"
+        }
+      };
+    });
 
     const payload = {
       customerId: Number(this.form.value.customerId),
       shippingAddress: this.form.value.shippingAddress,
-      items: this.itemsArr.controls.map(c => ({
-        productId: Number(c.get('productId')!.value),
-        quantity: Number(c.get('quantity')!.value)
-      }))
+      items: items
     };
 
-    // Confirm before sending
-    const totalAmount = this.total;
+    console.log("FINAL PAYLOAD SENT TO BACKEND:", payload);
+
     Swal.fire({
-      title: 'Create order?',
-      html: `<div style="text-align:left">
-               <div><strong>Customer ID:</strong> ${this.escapeHtml(String(payload.customerId))}</div>
-               <div style="margin-top:6px"><strong>Items:</strong> ${payload.items.length}</div>
-               <div style="margin-top:6px"><strong>Total:</strong> ${totalAmount}</div>
-             </div>`,
-      icon: 'question',
+      title: "Create Order?",
+      html: `<strong>Total:</strong> ${this.total}`,
+      icon: "question",
       showCancelButton: true,
-      confirmButtonText: 'Create',
-      cancelButtonText: 'Cancel'
-    }).then(result => {
-      if (!result.isConfirmed) return;
-      this.saveOrder(payload);
+      confirmButtonText: "Create"
+    }).then(res => {
+      if (res.isConfirmed) this.saveOrder(payload);
     });
   }
 
@@ -287,52 +213,35 @@ export class OrderForm implements OnInit, OnDestroy {
     this.saving = true;
 
     Swal.fire({
-      title: 'Saving order...',
+      title: "Saving...",
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading()
     });
 
-    this.os.create(payload).pipe(
-      takeUntil(this.destroy$),
-      map(() => true),
-      catchError(err => {
-        console.error(err);
-        this.error = err?.error?.message ?? 'Failed to create order';
-        Swal.fire('Error', this.error, 'error');
-        return of(false);
-      }),
-      finalize(() => {
-        this.saving = false;
-        try { Swal.close(); } catch {}
-      })
-    ).subscribe(async ok => {
-      if (!ok) return;
+    this.os.create(payload)
+      .pipe(
+        takeUntil(this.destroy$),
+        map(() => true),
+        catchError(err => {
+          console.error("Order creation failed:", err.error);
+          this.error = "Failed to create order.";
+          Swal.fire("Error", this.error, "error");
+          return of(false);
+        }),
+        finalize(() => {
+          this.saving = false;
+          Swal.close();
+        })
+      )
+      .subscribe(ok => {
+        if (!ok) return;
 
-      this.Toast.fire({ icon: 'success', title: 'Order created' });
-
-      // await navigation so redirect won't be blocked
-      try {
-        const nav = await this.router.navigateByUrl('/orders');
-        if (!nav) {
-          Swal.fire({ title: 'Saved', text: 'Order saved but navigation was blocked.', icon: 'info' });
-        }
-      } catch (navErr) {
-        console.error('Navigation error after save', navErr);
-        Swal.fire({ title: 'Saved', text: 'Order saved but navigation failed. Check console.', icon: 'info' });
-      }
-    });
+        this.Toast.fire({ icon: "success", title: "Order created" });
+        this.router.navigateByUrl('/orders');
+      });
   }
 
-  cancel() { this.router.navigateByUrl('/orders'); }
-
-  // small helper to escape HTML in messages (prevents markup injection)
-  private escapeHtml(s: string | undefined | null): string {
-    if (s == null) return '';
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+  cancel() {
+    this.router.navigateByUrl('/orders');
   }
 }
