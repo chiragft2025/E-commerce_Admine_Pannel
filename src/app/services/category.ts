@@ -7,6 +7,7 @@ import { Category, CategoryPagedResponse } from '../models/categories.model';
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
   private base = `${environment.apiUrl}/api/categories`;
+  
 
   constructor(private http: HttpClient) {}
 

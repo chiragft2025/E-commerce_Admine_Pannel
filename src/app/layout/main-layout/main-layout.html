@@ -17,7 +17,7 @@
           <a routerLink="/customers" routerLinkActive="active" class="nav-link" *appHasPermission="'Customer.View'" (click)="toggleSidebar()">Customers</a>
           <a routerLink="/orders" routerLinkActive="active" class="nav-link" *appHasPermission="'Order.View'" (click)="toggleSidebar()">Orders</a>
           <a routerLink="/users" routerLinkActive="active" class="nav-link" *appHasPermission="'User.View'" (click)="toggleSidebar()">Users</a>
-          <a routerLink="/roles" routerLinkActive="active" class="nav-link" *appHasPermission="'Role.Manage'" (click)="toggleSidebar()">Roles</a>
+          <a routerLink="/roles" routerLinkActive="active" class="nav-link" *appHasPermission="'Role.View'" (click)="toggleSidebar()">Roles</a>
         </nav>
       </div>
     </div>
@@ -38,7 +38,7 @@
       <a routerLink="/customers" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Customer.View'">Customers</a>
       <a routerLink="/orders" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Order.View'">Orders</a>
       <a routerLink="/users" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'User.View'">Users</a>
-      <a routerLink="/roles" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Role.Manage'">Roles</a>
+      <a routerLink="/roles" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Role.View'">Roles</a>
     </nav>
   </aside>
 
