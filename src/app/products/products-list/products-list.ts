@@ -95,6 +95,7 @@ authService: Auth=null as any;
 
   add() { this.router.navigateByUrl('/products/new'); }
   edit(p: Product) { this.router.navigateByUrl(`/products/${p.id}`); }
+  show(p: Product) { this.router.navigateByUrl(`/products/view/${p.id}`); }
 
  remove(p: Product) {
   // SweetAlert2 confirmation + loading + toast; preserves original reload behavior

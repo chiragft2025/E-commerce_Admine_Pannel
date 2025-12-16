@@ -1,0 +1,93 @@
+<div class="form-card card shadow-sm p-4">
+
+  <h2 class="mb-4">Product Details</h2>
+
+  <div class="row g-3">
+    <!-- Name -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Name</label>
+      <div class="form-control bg-light">
+        {{ product?.name }}
+      </div>
+    </div>
+
+    <!-- SKU -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">SKU</label>
+      <div class="form-control bg-light">
+        {{ product?.sku }}
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="col-12">
+      <label class="form-label">Description</label>
+      <div class="form-control bg-light" style="min-height: 90px;">
+        {{ product?.description || '—' }}
+      </div>
+    </div>
+
+    <!-- Price -->
+    <div class="col-12 col-md-4">
+      <label class="form-label">Price</label>
+      <div class="form-control bg-light">
+        {{ product?.price | number:'1.2-2' }}
+      </div>
+    </div>
+
+    <!-- Stock -->
+    <div class="col-12 col-md-4">
+      <label class="form-label">Stock</label>
+      <div class="form-control bg-light">
+        {{ product?.stock }}
+      </div>
+    </div>
+
+    <!-- Active -->
+    <div class="col-12 col-md-4 d-flex align-items-center">
+      <div class="form-check">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          [checked]="product?.isActive"
+          disabled
+        />
+        <label class="form-check-label">Active</label>
+      </div>
+    </div>
+
+    <!-- Category -->
+    <div class="col-12 col-md-6">
+      <label class="form-label">Category</label>
+      <div class="form-control bg-light">
+        {{ product?.category?.title || '—' }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Tags -->
+  <div class="mt-4" *ngIf="product?.tags?.length">
+    <label class="form-label">Tags</label>
+
+    <div class="d-flex flex-wrap gap-2">
+      <span
+        *ngFor="let t of product?.tags"
+        class="badge rounded-pill bg-secondary"
+      >
+        {{ t.name }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="back()"
+    >
+      Back
+    </button>
+  </div>
+
+</div>

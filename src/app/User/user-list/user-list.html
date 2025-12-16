@@ -55,7 +55,7 @@
           <th scope="col">Email</th>
           <th scope="col" class="text-center">Active</th>
           <th scope="col">Roles</th>
-          <th scope="col" class="text-end"  *appHasPermission="{ perms: ['User.Edit', 'User.Delete'], mode: 'any' }">Actions</th>
+          <th scope="col" class="text-end"  *appHasPermission="{ perms: ['User.Edit', 'User.Delete','User.Show'], mode: 'any' }">Actions</th>
         </tr>
       </thead>
 
@@ -66,8 +66,17 @@
           <td data-label="Active" class="text-center">{{ u.isActive ? 'Yes' : 'No' }}</td>
           <td data-label="Roles">{{ displayRoles(u) }}</td>
 
-          <td data-label="Actions" class="text-end"  *appHasPermission="{ perms: ['User.Edit', 'User.Delete'], mode: 'any' }">
+          <td data-label="Actions" class="text-end"  *appHasPermission="{ perms: ['User.Edit', 'User.Delete','User.Show'], mode: 'any' }">
             <div class="btn-group btn-group-sm" role="group" aria-label="User actions">
+              <button
+               *appHasPermission="'User.Show'"
+                class="btn btn-outline-secondary"
+                (click)="Show(u)"
+                title="Show"
+                aria-label="Show user"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
               <button
                *appHasPermission="'User.Edit'"
                 class="btn btn-outline-primary"

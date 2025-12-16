@@ -98,7 +98,7 @@
           class="btn"
           [ngClass]="p === page ? 'btn-primary' : 'btn-outline-secondary'"
           (click)="goToPage(p)"
-          [attr.aria-current]="p === page ? 'page' : null"
+          [attr.aria-current]="p === page ? 'page' : 1"
         >
           {{ p }}
         </button>

@@ -25,7 +25,7 @@ export class CustomerDetail implements OnInit {
     this.load();
   }
 
- cancel() { this.router.navigateByUrl('/customers'); }
+ back() { this.router.navigateByUrl('/customers'); }
 
   load() {
     this.loading = true;

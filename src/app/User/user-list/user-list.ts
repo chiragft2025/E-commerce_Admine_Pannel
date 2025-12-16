@@ -126,6 +126,10 @@ export class UserList implements OnInit, OnDestroy {
     const isSelf = !!(this.currentUserId && u.id === this.currentUserId);
     this.router.navigateByUrl(`/users/${u.id}`);
   }
+  Show(u: User) {
+    const isSelf = !!(this.currentUserId && u.id === this.currentUserId);
+    this.router.navigateByUrl(`users/view/${u.id}`);
+  }
 
   /**
    * Delete user with SweetAlert2 confirmation + loading modal, toast on success.

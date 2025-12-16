@@ -25,6 +25,7 @@ import { PermissionGuard } from './guards/permission.guard';
 import { UserRoleManage } from './User/user-role-manage/user-role-manage';
 import { UserProfile } from './User/user-profile/user-profile';
 import { CategoriesView } from './categories/categories-view/categories-view';
+import { ProductsView } from './products/products-view/products-view';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -45,6 +46,12 @@ export const routes: Routes = [
         component: ProductsList,
         canActivate: [PermissionGuard],
         data: { permission: 'Product.View' },
+      },
+      {
+        path: 'products/view/:id',
+        component: ProductsView,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Product.Show' },
       },
       {
         path: 'products/new',
@@ -108,7 +115,7 @@ export const routes: Routes = [
         path: 'users/view/:id',
         component: UserDetails,
         canActivate: [PermissionGuard],
-        data: { permission: 'User.View' },
+        data: { permission: 'User.Show' },
       },
       {
         path:'profile',
@@ -144,7 +151,7 @@ export const routes: Routes = [
         path: 'customers/view/:id',
         component: CustomerDetail,
         canActivate: [PermissionGuard],
-        data: { permission: 'Customer.View' },
+        data: { permission: 'Customer.Show' },
       },
 
       // Orders

@@ -1,0 +1,53 @@
+/* Product Show Card (same as form) */
+.form-card {
+  max-width: 900px;
+  margin: 20px auto;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.04);
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(16,24,40,0.06);
+}
+
+/* Labels */
+.form-label {
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Read-only field appearance */
+.form-control {
+  border-radius: 8px;
+  background-color: #f8fafc;
+  color: #0f172a;
+  cursor: default;
+}
+
+/* Placeholder for empty values */
+.form-control:empty::before {
+  content: '—';
+  color: #94a3b8;
+}
+
+/* Tag badges */
+.badge {
+  font-weight: 500;
+  padding: 0.45rem 0.75rem;
+}
+
+/* Buttons (same as form) */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+  .form-card {
+    margin: 12px;
+  }
+
+  .d-flex.justify-content-end {
+    flex-direction: column;
+    gap: .5rem;
+  }
+}
