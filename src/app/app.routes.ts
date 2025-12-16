@@ -24,6 +24,7 @@ import { UserDetails } from './User/user-details/user-details';
 import { PermissionGuard } from './guards/permission.guard';
 import { UserRoleManage } from './User/user-role-manage/user-role-manage';
 import { UserProfile } from './User/user-profile/user-profile';
+import { CategoriesView } from './categories/categories-view/categories-view';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -64,6 +65,12 @@ export const routes: Routes = [
         component: CategoryList,
         canActivate: [PermissionGuard],
         data: { permission: 'Category.View' },
+      },
+      {
+        path: 'categories/show/:id',
+        component: CategoriesView,
+        canActivate: [PermissionGuard],
+        data: { permission: 'Category.Show' },
       },
       {
         path: 'categories/new',
@@ -165,7 +172,7 @@ export const routes: Routes = [
         path: 'roles',
         component: RoleList,
         canActivate: [PermissionGuard],
-        data: { permission: 'Role.Manage' }, // only users with Role.Manage can view/manage roles
+        data: { permission: 'Role.View' }, // only users with Role.Manage can view/manage roles
       },
       {
         path: 'roles/new',

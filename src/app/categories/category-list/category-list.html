@@ -54,7 +54,7 @@
           <th scope="col">Title</th>
           <th scope="col">Description</th>
           <th scope="col" *appHasPermission="{ perms: ['Role.Manage'], mode: 'any' }"> CreatedBy</th>
-          <th scope="col" class="text-end" *appHasPermission="{ perms: ['Category.Edit', 'Category.Delete'], mode: 'any' }">Actions</th>
+          <th scope="col" class="text-end" *appHasPermission="{ perms: ['Category.Edit', 'Category.Delete','Category.Show'], mode: 'any' }">Actions</th>
         </tr>
       </thead>
 
@@ -63,12 +63,14 @@
           <td data-label="Title">{{ c.title }}</td>
           <td data-label="Description">{{ c.description }}</td>
           <td data-label="CreatedBy" *appHasPermission="{ perms: ['Role.Manage'], mode: 'any' }" >{{ c.createdBy }}</td>
-          <td data-label="Actions" class="text-end" class="text-end"  *appHasPermission="{ perms: ['Category.Edit', 'Category.Delete'], mode: 'any' }"  >
+          <td data-label="Actions" class="text-end" class="text-end"  *appHasPermission="{ perms: ['Category.Edit', 'Category.Delete','Category.Show'], mode: 'any' }"  >
             <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+               <button *appHasPermission="'Category.Show'" class="btn btn-outline-secondary" (click)="show(c)" title="Show" aria-label="Show category">
+                <i class="bi bi-eye"></i>
+              </button>
               <button *appHasPermission="'Category.Edit'" class="btn btn-outline-primary" (click)="edit(c)" title="Edit" aria-label="Edit category">
                 <i class="bi bi-pencil"></i>
               </button>
-
               <button *appHasPermission="'Category.Delete'" class="btn btn-outline-danger" (click)="remove(c)" title="Delete" aria-label="Delete category">
                 <i class="bi bi-trash"></i>
               </button>

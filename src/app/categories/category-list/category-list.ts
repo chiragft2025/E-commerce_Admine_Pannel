@@ -159,6 +159,9 @@ export class CategoryList implements OnInit, OnDestroy {
   edit(cat: Category): void {
     this.router.navigateByUrl(`/categories/${cat.id}`).catch(() => {});
   }
+  show(cat: Category): void {
+    this.router.navigateByUrl(`/categories/show/${cat.id}`).catch(() => {});
+  }
 
 remove(cat: Category): void {
   Swal.fire({

@@ -1,0 +1,41 @@
+<div class="form-card card shadow-sm p-4">
+
+  <h2 class="mb-4">Category Details</h2>
+
+  <!-- Title -->
+  <div class="mb-3">
+    <label class="form-label">Title</label>
+    <div class="form-control bg-light">
+      {{ category?.title }}
+    </div>
+  </div>
+
+  <!-- Description -->
+  <div class="mb-3">
+    <label class="form-label">Description</label>
+    <div class="form-control bg-light" style="min-height: 90px;">
+      {{ category?.description || '—' }}
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="d-flex justify-content-end gap-2 mt-4">
+    <button
+      *appHasPermission="'Category.Edit'"
+      type="button"
+      class="btn btn-primary px-4"
+      (click)="edit(category)"
+    >
+      Edit
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-outline-secondary px-4"
+      (click)="back()"
+    >
+      Back
+    </button>
+  </div>
+
+</div>

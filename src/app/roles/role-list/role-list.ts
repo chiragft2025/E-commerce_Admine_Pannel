@@ -15,11 +15,12 @@ import {
   finalize
 } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+import { HasPermissionDirective } from '../../directives/has-permission.directive';
 
 @Component({
   selector: 'app-role-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule,HasPermissionDirective],
   templateUrl: './role-list.html',
   styleUrls: ['./role-list.scss']
 })

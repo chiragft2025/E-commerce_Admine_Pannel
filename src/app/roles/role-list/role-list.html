@@ -31,6 +31,7 @@
 
       <!-- New Role button -->
       <button
+      *appHasPermission="'Role.Manage'"
         class="btn btn-sm btn-primary w-100 w-sm-auto"
         (click)="add()"
         aria-label="New Role"
@@ -53,7 +54,7 @@
           <th scope="col">Name</th>
           <th scope="col">Description</th>
           <th scope="col" class="text-center">Active</th>
-          <th scope="col" class="text-end">Actions</th>
+          <th scope="col" class="text-end" *appHasPermission="'Role.Manage'">Actions</th>
         </tr>
       </thead>
 
@@ -62,7 +63,7 @@
           <td data-label="Name">{{ r.name }}</td>
           <td data-label="Description">{{ r.description }}</td>
           <td data-label="Active" class="text-center">{{ r.isActive ? 'Yes' : 'No' }}</td>
-          <td data-label="Actions" class="text-end">
+          <td data-label="Actions" class="text-end" *appHasPermission="'Role.Manage'">
             <div class="btn-group btn-group-sm" role="group" aria-label="Role actions">
               <button class="btn btn-outline-primary" (click)="edit(r)" title="Edit" aria-label="Edit role">
                 <i class="bi bi-pencil"></i>
