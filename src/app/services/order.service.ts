@@ -4,7 +4,12 @@ import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { OrderSummary, OrderDetail, CreateOrderRequest } from '../models/order.model';
 
-export interface Paged<T> { items: T[]; total: number; page: number; pageSize: number; }
+export interface Paged<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class OrderService {
@@ -34,5 +39,10 @@ export class OrderService {
 
   cancel(id: number): Observable<void> {
     return this.http.post<void>(`${this.base}/${id}/cancel`, {});
+  }
+
+  /** Delete order (soft delete on backend) */
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${id}`);
   }
 }

@@ -8,7 +8,6 @@
 
     <!-- Controls (search + buttons) -->
     <div class="controls d-flex flex-column flex-sm-row gap-2 align-items-stretch w-100 w-md-auto">
-      <!-- Search input wrapper ensures proper shrinking -->
       <div class="search-wrapper flex-grow-1" style="min-width:0;">
         <input
           type="search"
@@ -20,65 +19,75 @@
         />
       </div>
 
-      <!-- Search button -->
-      <button
-        class="btn btn-sm btn-outline-secondary w-100 w-sm-auto"
-        aria-label="Search"
-      >
+      <button class="btn btn-sm btn-outline-secondary w-100 w-sm-auto">
         <i class="bi bi-search"></i>
       </button>
 
-      <!-- New Order button -->
-        <button
-          *appHasPermission="'Order.Manage'"
-          class="btn btn-sm btn-primary w-100 w-sm-auto"
-          (click)="create()"
-          aria-label="New Order"
-        >
-          <i class="bi bi-plus-lg me-1"></i> New Order
-        </button>
+      <button
+        *appHasPermission="'Order.Manage'"
+        class="btn btn-sm btn-primary w-100 w-sm-auto"
+        (click)="create()"
+      >
+        <i class="bi bi-plus-lg me-1"></i> New Order
+      </button>
     </div>
   </div>
 
   <!-- Loading spinner -->
   <div *ngIf="loading" class="text-center my-4">
-    <div class="spinner-border" role="status" aria-hidden="true"></div>
+    <div class="spinner-border" role="status"></div>
   </div>
 
-  <!-- Table or empty state -->
+  <!-- Table -->
   <div *ngIf="!loading && orders?.length; else empty" class="table-responsive">
     <table class="table table-hover align-middle orders-table mb-0">
       <thead class="table-light">
         <tr>
-          <th scope="col">Number</th>
-          <th scope="col">Placed</th>
-          <th scope="col">Customer</th>
-          <th scope="col">Status</th>
-          <th scope="col"  *appHasPermission="'Role.Manage'">CreatedBy</th>
-          <th scope="col" class="text-end">Total</th>
-          <th scope="col" class="text-end" *appHasPermission="'Order.Manage'">Actions</th>
+          <th>Number</th>
+          <th>Placed</th>
+          <th>Customer</th>
+          <th>Status</th>
+          <th *appHasPermission="'Role.Manage'">CreatedBy</th>
+          <th class="text-end">Total</th>
+          <th class="text-end" *appHasPermission="'Order.Manage'">Actions</th>
         </tr>
       </thead>
 
       <tbody>
         <tr *ngFor="let o of orders">
-          <td data-label="ID">OD_2025_{{ o.id }}</td>
-          <td data-label="Placed">{{ o.placedAt | date: 'short' }}</td>
-          <td data-label="Customer">{{ o.customer?.fullName }}</td>
-          <td data-label="Status" >{{o.status}}</td>
-          <td data-label="CreatedBy"  *appHasPermission="'Role.Manage'">{{ o.createdBy }}</td>
-          <td data-label="Total" class="text-end">{{ o.totalAmount | number: '1.2-2' }}</td>
-          <td data-label="Actions" class="text-end" *appHasPermission="'Order.Manage'">
-            <button class="btn btn-sm btn-outline-secondary" (click)="view(o)" aria-label="View order">
-              <i class="bi bi-eye"></i>
-            </button>
+          <td>OD_2025_{{ o.id }}</td>
+          <td>{{ o.placedAt | date: 'short' }}</td>
+          <td>{{ o.customer?.fullName }}</td>
+          <td>{{ o.status }}</td>
+          <td *appHasPermission="'Role.Manage'">{{ o.createdBy }}</td>
+          <td class="text-end">{{ o.totalAmount | number:'1.2-2' }}</td>
+
+          <!-- Actions -->
+          <td class="text-end" *appHasPermission="'Order.Manage'">
+            <div class="btn-group btn-group-sm">
+              <button
+                class="btn btn-outline-secondary"
+                (click)="view(o)"
+                aria-label="View order"
+              >
+                <i class="bi bi-eye"></i>
+              </button>
+
+              <button
+                class="btn btn-outline-danger"
+                (click)="remove(o)"
+                aria-label="Delete order"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Empty template -->
+  <!-- Empty -->
   <ng-template #empty>
     <div class="no-orders-found card p-3 text-center text-muted mt-3">
       No orders found.
@@ -87,17 +96,14 @@
 
   <!-- Pagination -->
   <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-2 mt-4">
-    <div class="btn-group btn-group-sm" role="group" aria-label="Page navigation">
+    <div class="btn-group btn-group-sm">
       <button class="btn btn-outline-secondary" (click)="prev()" [disabled]="page === 1">Prev</button>
-
-      <!-- keep simple page indicator (matches your existing component vars) -->
       <button class="btn btn-primary">{{ page }}</button>
-
       <button class="btn btn-outline-secondary" (click)="next()" [disabled]="page === pageCount">Next</button>
     </div>
 
-    <div class="pagination-info text-muted small mt-2 mt-md-0">
-      Page {{ page }} of  1 — {{ total ?? 'N/A' }} items
+    <div class="pagination-info text-muted small">
+      Page {{ page }} of {{ pageCount }} — {{ total ?? 'N/A' }} items
     </div>
   </div>
 </div>
