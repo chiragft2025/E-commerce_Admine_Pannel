@@ -6,10 +6,15 @@
 
     <!-- Customer -->
     <div class="mb-3">
-      <label class="form-label">Customer<span class="requried1">*</span></label>
+      <label class="form-label">
+        Customer <span class="requried1">*</span>
+      </label>
+
       <select class="form-select" formControlName="customerId">
         <option [ngValue]="null">-- select customer --</option>
-        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.fullName }}</option>
+        <option *ngFor="let c of customers" [ngValue]="c.id">
+          {{ c.fullName }}
+        </option>
       </select>
 
       <div class="text-danger small mt-1"
@@ -21,23 +26,40 @@
     <!-- Shipping Address -->
     <div class="mb-3">
       <label class="form-label">Shipping Address</label>
-      <textarea class="form-control" rows="2" formControlName="shippingAddress"></textarea>
+      <textarea
+        class="form-control"
+        rows="2"
+        formControlName="shippingAddress">
+      </textarea>
     </div>
 
     <!-- Items -->
     <div class="mb-3">
-      <label class="form-label">Items<span class="requried1">*</span></label>
+      <label class="form-label">
+        Items <span class="requried1">*</span>
+      </label>
 
       <div formArrayName="items" class="d-flex flex-column gap-3">
 
-        <div *ngFor="let item of itemsArr.controls; let i = index" [formGroupName]="i" class="item-row p-3 border rounded">
+        <div *ngFor="let item of itemsArr.controls; let i = index"
+             [formGroupName]="i"
+             class="item-row p-3 border rounded"
+             [class.border-danger]="item.invalid && item.touched">
+
           <div class="row g-2 align-items-center">
-            <!-- Product select -->
+
+            <!-- Product -->
             <div class="col-12 col-md-3">
-              <label class="form-label small d-block">Product<span class="requried1">*</span></label>
-              <select class="form-select form-select-sm" formControlName="productId">
+              <label class="form-label small d-block">
+                Product <span class="requried1">*</span>
+              </label>
+
+              <select class="form-select form-select-sm"
+                      formControlName="productId">
                 <option [ngValue]="null">-- select product --</option>
-                <option *ngFor="let p of products" [ngValue]="p.id">{{ p.name }}</option>
+                <option *ngFor="let p of products" [ngValue]="p.id">
+                  {{ p.name }}
+                </option>
               </select>
 
               <div class="text-danger small mt-1"
@@ -46,56 +68,88 @@
               </div>
             </div>
 
-            <!-- Product Name (readonly) -->
+            <!-- Product Name -->
             <div class="col-12 col-md-5">
               <label class="form-label small d-block">Product name</label>
-              <input type="text" class="form-control form-control-sm" formControlName="productName" readonly />
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                formControlName="productName"
+                readonly />
             </div>
 
-            <!-- Unit price -->
+            <!-- Unit Price -->
             <div class="col-6 col-md-2">
               <label class="form-label small d-block">Unit price</label>
-              <input type="number" class="form-control form-control-sm" formControlName="unitPrice" readonly />
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                formControlName="unitPrice"
+                readonly />
             </div>
 
             <!-- Stock -->
             <div class="col-6 col-md-2">
               <label class="form-label small d-block">Stock</label>
-              <input type="number" class="form-control form-control-sm" formControlName="stock" readonly />
+              <input
+                type="number"
+                class="form-control form-control-sm"
+                formControlName="stock"
+                readonly />
             </div>
 
             <!-- Quantity + Remove -->
             <div class="col-12 col-md-3">
-              <label class="form-label small d-block">Quantity<span class="requried1">*</span></label>
-              <div class="d-flex gap-2 align-items-start">
-                <input type="number" class="form-control form-control-sm" formControlName="quantity" min="1" />
+              <label class="form-label small d-block">
+                Quantity <span class="requried1">*</span>
+              </label>
 
-                <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeItem(i)" aria-label="Remove item">
+              <div class="d-flex gap-2 align-items-start">
+                <input
+                  type="number"
+                  class="form-control form-control-sm"
+                  formControlName="quantity"
+                  min="1" />
+
+                <button
+                  type="button"
+                  class="btn btn-outline-danger btn-sm"
+                  (click)="removeItem(i)"
+                  aria-label="Remove item">
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
 
+              <!-- Quantity Errors -->
               <div class="text-danger small mt-1"
                    *ngIf="item.get('quantity')?.touched && item.get('quantity')?.hasError('required')">
                 * Quantity is required
               </div>
+
               <div class="text-danger small mt-1"
                    *ngIf="item.get('quantity')?.touched && item.get('quantity')?.hasError('min')">
                 * Quantity must be at least 1
               </div>
+
               <div class="text-danger small mt-1"
-                   *ngIf="item.get('quantity')?.touched && item.get('quantity')?.hasError('exceedsStock')">
+                   *ngIf="item.get('quantity')?.touched && item.get('quantity')?.hasError('quantityExceedsStock')">
                 * Quantity exceeds available stock
               </div>
             </div>
+
           </div>
         </div>
 
       </div>
 
+      <!-- Add Item -->
       <div class="mt-3">
-        <button type="button" class="btn btn-sm btn-outline-primary" (click)="addItem()">
-          <i class="bi bi-plus-lg me-1"></i> Add Item
+        <button
+          type="button"
+          class="btn btn-sm btn-outline-primary"
+          (click)="addItem()">
+          <i class="bi bi-plus-lg me-1"></i>
+          Add Item
         </button>
       </div>
     </div>
@@ -103,16 +157,32 @@
     <!-- Summary -->
     <div class="d-flex justify-content-between align-items-center mt-3">
       <div class="text-muted">Total:</div>
-      <div class="fs-5 fw-semibold">{{ total | number:'1.2-2' }}</div>
+      <div class="fs-5 fw-semibold">
+        {{ total | number:'1.2-2' }}
+      </div>
     </div>
 
-    <!-- Error -->
-    <div *ngIf="error" class="alert alert-danger mt-3">{{ error }}</div>
+    <!-- Global Error -->
+    <div *ngIf="error" class="alert alert-danger mt-3">
+      {{ error }}
+    </div>
 
     <!-- Actions -->
     <div class="d-flex justify-content-end gap-2 mt-4">
-      <button type="submit" class="btn btn-primary" [disabled]="saving">Place order</button>
-      <button type="button" class="btn btn-outline-secondary" (click)="cancel()">Cancel</button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="saving || form.invalid">
+        Place order
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        (click)="cancel()">
+        Cancel
+      </button>
     </div>
+
   </form>
 </div>

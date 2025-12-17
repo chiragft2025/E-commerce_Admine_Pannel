@@ -5,7 +5,10 @@ import {
   FormGroup,
   ReactiveFormsModule,
   Validators,
-  FormArray
+  FormArray,
+  AbstractControl,
+  ValidationErrors,
+  ValidatorFn
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ProductService } from '../../services/product';
@@ -16,6 +19,24 @@ import { Customer } from '../../models/customers.model';
 import { Subject, of } from 'rxjs';
 import { debounceTime, takeUntil, catchError, finalize, map } from 'rxjs/operators';
 import Swal from 'sweetalert2';
+
+/* =========================================================
+   CUSTOM VALIDATOR: quantity must NOT be greater than stock
+========================================================= */
+export function quantityNotGreaterThanStock(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.parent) return null;
+
+    const quantity = Number(control.value);
+    const stock = Number(control.parent.get('stock')?.value);
+
+    if (isNaN(quantity) || isNaN(stock)) return null;
+
+    return quantity > stock
+      ? { quantityExceedsStock: true }
+      : null;
+  };
+}
 
 @Component({
   selector: 'app-order-form',
@@ -65,7 +86,7 @@ export class OrderForm implements OnInit, OnDestroy {
     this.addItem();
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -74,10 +95,10 @@ export class OrderForm implements OnInit, OnDestroy {
   // LOAD DATA
   // ----------------------------------------------
 
-  private loadCustomers() {
+  private loadCustomers(): void {
     this.loadingCustomers = true;
-    this.cs.listPaged?.(undefined, 1, 1000)
-      ?.pipe(
+    this.cs.listPaged(undefined, 1, 1000)
+      .pipe(
         takeUntil(this.destroy$),
         catchError(err => {
           console.error('Failed to load customers', err);
@@ -88,23 +109,18 @@ export class OrderForm implements OnInit, OnDestroy {
       .subscribe(res => this.customers = res.items || []);
   }
 
-  private loadProducts() {
+  private loadProducts(): void {
     this.loadingProducts = true;
-    const obs = this.ps.listPaged?.() ?? this.ps.listPaged?.(undefined, 1, 1000);
-    if (!obs) return;
-
-    obs.pipe(
-      takeUntil(this.destroy$),
-      catchError(err => {
-        console.error('Failed to load products', err);
-        return of([]);
-      }),
-      finalize(() => this.loadingProducts = false)
-    ).subscribe((res: any) => {
-      if (Array.isArray(res)) this.products = res;
-      else if (Array.isArray(res.items)) this.products = res.items;
-      else this.products = [];
-    });
+    this.ps.listPaged(undefined, 1, 1000)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(err => {
+          console.error('Failed to load products', err);
+          return of({ items: [] });
+        }),
+        finalize(() => this.loadingProducts = false)
+      )
+      .subscribe(res => this.products = res.items || []);
   }
 
   // ----------------------------------------------
@@ -115,42 +131,54 @@ export class OrderForm implements OnInit, OnDestroy {
     return this.form.get('items') as FormArray;
   }
 
-  addItem() {
+  addItem(): void {
     const group = this.fb.group({
       productId: [null, Validators.required],
       productName: [''],
-      unitPrice: [0, Validators.required],
+      unitPrice: [{ value: 0, disabled: true }],
       stock: [0],
-      quantity: [1, [Validators.required, Validators.min(1)]]
+      quantity: [
+        1,
+        [
+          Validators.required,
+          Validators.min(1),
+          quantityNotGreaterThanStock()
+        ]
+      ]
     });
 
-    // When product changes, update fields
     group.get('productId')?.valueChanges
       .pipe(debounceTime(200), takeUntil(this.destroy$))
       .subscribe(pid => {
         const product = this.products.find(p => p.id === pid);
-        if (product) {
-          group.patchValue(
-            {
-              productName: product.name,
-              unitPrice: product.price,
-              stock: product.stock
-            },
-            { emitEvent: false }
-          );
-        }
+        if (!product) return;
+
+        group.patchValue(
+          {
+            productName: product.name,
+            unitPrice: product.price,
+            stock: product.stock,
+            quantity: 1
+          },
+          { emitEvent: false }
+        );
+
+        // 🔁 revalidate quantity when stock changes
+        group.get('quantity')?.updateValueAndValidity();
       });
 
     this.itemsArr.push(group);
   }
 
-  removeItem(i: number) {
+  removeItem(i: number): void {
     this.itemsArr.removeAt(i);
   }
 
   get total(): number {
     return this.itemsArr.controls.reduce((sum, c) => {
-      return sum + (Number(c.get('quantity')?.value) * Number(c.get('unitPrice')?.value));
+      const qty = Number(c.get('quantity')?.value);
+      const price = Number(c.getRawValue().unitPrice);
+      return sum + qty * price;
     }, 0);
   }
 
@@ -158,34 +186,33 @@ export class OrderForm implements OnInit, OnDestroy {
   // SUBMIT ORDER
   // ----------------------------------------------
 
-  submit() {
+  submit(): void {
     this.error = null;
     this.form.markAllAsTouched();
 
     if (this.form.invalid) {
-      this.error = "Please fix validation errors.";
+      this.error = 'Please fix validation errors.';
       return;
     }
 
-    // Validate item list
     if (this.itemsArr.length === 0) {
-      this.error = "At least one item is required.";
+      this.error = 'At least one item is required.';
       return;
     }
 
-    // Build correct backend format
     const items = this.itemsArr.controls.map(c => {
-      const pid = Number(c.get('productId')!.value);
+      const raw = c.getRawValue();
+      const pid = Number(raw.productId);
       const product = this.products.find(p => p.id === pid);
 
       return {
-        id: pid,  // backend requires "id"
-        quantity: Number(c.get('quantity')!.value),
-        unitPrice: Number(c.get('unitPrice')!.value),
+        id: pid,
+        quantity: Number(raw.quantity),
+        unitPrice: Number(raw.unitPrice),
         product: {
           id: product?.id ?? pid,
-          name: product?.name ?? "",
-          sku: product?.sku ?? "unknown"
+          name: product?.name ?? '',
+          sku: product?.sku ?? 'unknown'
         }
       };
     });
@@ -193,27 +220,27 @@ export class OrderForm implements OnInit, OnDestroy {
     const payload = {
       customerId: Number(this.form.value.customerId),
       shippingAddress: this.form.value.shippingAddress,
-      items: items
+      items
     };
 
-    console.log("FINAL PAYLOAD SENT TO BACKEND:", payload);
-
     Swal.fire({
-      title: "Create Order?",
+      title: 'Create Order?',
       html: `<strong>Total:</strong> ${this.total}`,
-      icon: "question",
+      icon: 'question',
       showCancelButton: true,
-      confirmButtonText: "Create"
+      confirmButtonText: 'Create'
     }).then(res => {
-      if (res.isConfirmed) this.saveOrder(payload);
+      if (res.isConfirmed) {
+        this.saveOrder(payload);
+      }
     });
   }
 
-  private saveOrder(payload: any) {
+  private saveOrder(payload: any): void {
     this.saving = true;
 
     Swal.fire({
-      title: "Saving...",
+      title: 'Saving...',
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading()
     });
@@ -223,9 +250,9 @@ export class OrderForm implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         map(() => true),
         catchError(err => {
-          console.error("Order creation failed:", err.error);
-          this.error = "Failed to create order.";
-          Swal.fire("Error", this.error, "error");
+          console.error('Order creation failed:', err);
+          this.error = 'Failed to create order.';
+          Swal.fire('Error', this.error, 'error');
           return of(false);
         }),
         finalize(() => {
@@ -235,13 +262,12 @@ export class OrderForm implements OnInit, OnDestroy {
       )
       .subscribe(ok => {
         if (!ok) return;
-
-        this.Toast.fire({ icon: "success", title: "Order created" });
+        this.Toast.fire({ icon: 'success', title: 'Order created' });
         this.router.navigateByUrl('/orders');
       });
   }
 
-  cancel() {
+  cancel(): void {
     this.router.navigateByUrl('/orders');
   }
 }
