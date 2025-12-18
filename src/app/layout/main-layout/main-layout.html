@@ -1,23 +1,78 @@
 <!-- main-layout.component.html -->
-<div class="app-shell d-flex" [class.sidebar-open]="sidebarOpen" [attr.data-sidebar-open]="sidebarOpen">
+<div
+  class="app-shell d-flex"
+  [class.sidebar-open]="sidebarOpen"
+  [attr.data-sidebar-open]="sidebarOpen"
+>
   <!-- Sidebar (persistent on md+, offcanvas on sm) -->
   <!-- Offcanvas for small screens -->
   <div class="d-md-none">
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="mobileSidebar" aria-labelledby="mobileSidebarLabel"
-         [class.show]="sidebarOpen" [attr.aria-hidden]="!sidebarOpen" (click)="toggleSidebar()">
+    <div
+      class="offcanvas offcanvas-start"
+      tabindex="-1"
+      id="mobileSidebar"
+      aria-labelledby="mobileSidebarLabel"
+      [class.show]="sidebarOpen"
+      [attr.aria-hidden]="!sidebarOpen"
+      (click)="toggleSidebar()"
+    >
       <div class="offcanvas-header">
         <h5 class="offcanvas-title" id="mobileSidebarLabel">MyApp</h5>
         <button type="button" class="btn-close text-reset" aria-label="Close"></button>
       </div>
       <div class="offcanvas-body p-0">
         <nav class="nav flex-column px-3 py-2" role="navigation" aria-label="Main menu">
-          <a routerLink="/home" routerLinkActive="active" class="nav-link" (click)="toggleSidebar()">Dashboard</a>
-          <a routerLink="/categories" routerLinkActive="active" class="nav-link" *appHasPermission="'Category.View'" (click)="toggleSidebar()">Categories</a>
-          <a routerLink="/products" routerLinkActive="active" class="nav-link" *appHasPermission="'Product.View'" (click)="toggleSidebar()">Products</a>
-          <a routerLink="/customers" routerLinkActive="active" class="nav-link" *appHasPermission="'Customer.View'" (click)="toggleSidebar()">Customers</a>
-          <a routerLink="/orders" routerLinkActive="active" class="nav-link" *appHasPermission="'Order.View'" (click)="toggleSidebar()">Orders</a>
-          <a routerLink="/users" routerLinkActive="active" class="nav-link" *appHasPermission="'User.View'" (click)="toggleSidebar()">Users</a>
-          <a routerLink="/roles" routerLinkActive="active" class="nav-link" *appHasPermission="'Role.View'" (click)="toggleSidebar()">Roles</a>
+          <a routerLink="/home" routerLinkActive="active" class="nav-link" (click)="toggleSidebar()"
+            >Dashboard</a
+          >
+          <a
+            routerLink="/categories"
+            routerLinkActive="active"
+            class="nav-link"
+            *appHasPermission="'Category.View'"
+            (click)="toggleSidebar()"
+            >Categories</a
+          >
+          <a
+            routerLink="/products"
+            routerLinkActive="active"
+            class="nav-link"
+            *appHasPermission="'Product.View'"
+            (click)="toggleSidebar()"
+            >Products</a
+          >
+          <a
+            routerLink="/customers"
+            routerLinkActive="active"
+            class="nav-link"
+            *appHasPermission="'Customer.View'"
+            (click)="toggleSidebar()"
+            >Customers</a
+          >
+          <a
+            routerLink="/orders"
+            routerLinkActive="active"
+            class="nav-link"
+            *appHasPermission="'Order.View'"
+            (click)="toggleSidebar()"
+            >Orders</a
+          >
+          <a
+            routerLink="/users"
+            routerLinkActive="active"
+            class="nav-link"
+            *appHasPermission="'User.View'"
+            (click)="toggleSidebar()"
+            >Users</a
+          >
+          <a
+            routerLink="/roles"
+            routerLinkActive="active"
+            class="nav-link"
+            *appHasPermission="'Role.View'"
+            (click)="toggleSidebar()"
+            >Roles</a
+          >
         </nav>
       </div>
     </div>
@@ -27,18 +82,54 @@
   <aside class="sidebar d-none d-md-flex flex-column" [attr.aria-hidden]="!sidebarOpen && 'false'">
     <div class="brand p-3 border-bottom">
       <a routerLink="/" class="brand-link d-flex align-items-center text-decoration-none">
-        <img src="assets/img/logo.png" alt="logo" height="28" class="me-2">
+        <img src="assets/img/logo.png" alt="logo" height="28" class="me-2" />
         <span class="h6 mb-0">MyApp</span>
       </a>
     </div>
     <nav class="nav flex-column p-3" role="navigation" aria-label="Main menu">
       <a routerLink="/home" routerLinkActive="active" class="nav-link py-2">Dashboard</a>
-      <a routerLink="/categories" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Category.View'">Categories</a>
-      <a routerLink="/products" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Product.View'">Products</a>
-      <a routerLink="/customers" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Customer.View'">Customers</a>
-      <a routerLink="/orders" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Order.View'">Orders</a>
-      <a routerLink="/users" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'User.View'">Users</a>
-      <a routerLink="/roles" routerLinkActive="active" class="nav-link py-2" *appHasPermission="'Role.View'">Roles</a>
+      <a
+        routerLink="/categories"
+        routerLinkActive="active"
+        class="nav-link py-2"
+        *appHasPermission="'Category.View'"
+        >Categories</a
+      >
+      <a
+        routerLink="/products"
+        routerLinkActive="active"
+        class="nav-link py-2"
+        *appHasPermission="'Product.View'"
+        >Products</a
+      >
+      <a
+        routerLink="/customers"
+        routerLinkActive="active"
+        class="nav-link py-2"
+        *appHasPermission="'Customer.View'"
+        >Customers</a
+      >
+      <a
+        routerLink="/orders"
+        routerLinkActive="active"
+        class="nav-link py-2"
+        *appHasPermission="'Order.View'"
+        >Orders</a
+      >
+      <a
+        routerLink="/users"
+        routerLinkActive="active"
+        class="nav-link py-2"
+        *appHasPermission="'User.View'"
+        >Users</a
+      >
+      <a
+        routerLink="/roles"
+        routerLinkActive="active"
+        class="nav-link py-2"
+        *appHasPermission="'Role.View'"
+        >Roles</a
+      >
     </nav>
   </aside>
 
@@ -48,12 +139,16 @@
       <div class="container-fluid">
         <div class="d-flex align-items-center">
           <!-- toggle only visible on sm -->
-          <button class="btn btn-outline-secondary d-md-none me-2" type="button" (click)="toggleSidebar()" aria-label="Toggle menu">
+          <button
+            class="btn btn-outline-secondary d-md-none me-2"
+            type="button"
+            (click)="toggleSidebar()"
+            aria-label="Toggle menu"
+          >
             <i class="bi bi-list"></i>
           </button>
 
           <!-- optional collapse for title / breadcrumbs -->
-
         </div>
 
         <div class="ms-auto d-flex align-items-center gap-2" (click)="$event.stopPropagation()">
@@ -74,11 +169,27 @@
               class="dropdown-menu dropdown-menu-end shadow-sm"
               [class.show]="userMenuOpen"
               aria-labelledby="userMenuButton"
-              style="min-width:160px; right: 1px;"
+              style="min-width: 160px; right: 1px"
             >
               <li>
-                <a class="dropdown-item" (click)="onProfile()" role="menuitem" href="javascript:void(0)">
+                <a
+                  class="dropdown-item"
+                  (click)="onProfile()"
+                  role="menuitem"
+                  href="javascript:void(0)"
+                >
                   <i class="bi bi-person me-2"></i>Profile
+                </a>
+              </li>
+              <li><hr class="dropdown-divider" /></li>
+              <li>
+                <a
+                  class="dropdown-item"
+                  (click)="onChangePassword()"
+                  role="menuitem"
+                  href="javascript:void(0)"
+                >
+                  <i class="bi bi-key me-2"></i>Change Password
                 </a>
               </li>
               <li><hr class="dropdown-divider" /></li>

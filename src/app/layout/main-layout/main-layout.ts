@@ -98,6 +98,11 @@ export class MainLayout implements OnInit, OnDestroy {
     this.router.navigate(['/profile']);
   }
 
+onChangePassword(): void {
+    this.userMenuOpen = false;
+    this.router.navigate(['/change-password']);
+  }
+
   closeSidebar(): void {
     this.sidebarOpen = false;
     this.syncHtmlClass();

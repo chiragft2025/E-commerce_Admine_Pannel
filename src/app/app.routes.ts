@@ -26,6 +26,7 @@ import { UserRoleManage } from './User/user-role-manage/user-role-manage';
 import { UserProfile } from './User/user-profile/user-profile';
 import { CategoriesView } from './categories/categories-view/categories-view';
 import { ProductsView } from './products/products-view/products-view';
+import { UserChangePassword } from './User/user-change-password/user-change-password';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -120,6 +121,10 @@ export const routes: Routes = [
       {
         path:'profile',
         component:UserProfile
+      },
+      {
+        path:'change-password',
+        component:UserChangePassword
       },
       {
         path: 'users/:id/roles',

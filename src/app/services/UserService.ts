@@ -3,6 +3,7 @@ import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
 import { User, CreateUserRequest, UpdateUserRequest } from '../models/User.model';
+import { ChangePasswordRequest } from '../models/change-password.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -11,12 +12,12 @@ export class UserService {
   constructor(private http: HttpClient) {}
 
   list(search?: string): Observable<User[]> {
-  const params = search?.trim()
-    ? new HttpParams().set('search', search.trim())
-    : undefined;
+    const params = search?.trim()
+      ? new HttpParams().set('search', search.trim())
+      : undefined;
 
-  return this.http.get<User[]>(this.base, { params });
-}
+    return this.http.get<User[]>(this.base, { params });
+  }
 
   get(id: number | string): Observable<User> {
     return this.http.get<User>(`${this.base}/${id}`);
@@ -31,7 +32,7 @@ export class UserService {
   }
 
   delete(id: number | string): Observable<HttpResponse<void>> {
-    return this.http.delete<void>(`${this.base}/${id}`,{observe: 'response'});
+    return this.http.delete<void>(`${this.base}/${id}`, { observe: 'response' });
   }
 
   profile(): Observable<User> {
@@ -41,5 +42,10 @@ export class UserService {
   assignRoles(id: number | string, roleIds: number[]): Observable<void> {
     const payload = { roleIds };
     return this.http.post<void>(`${this.base}/${id}/roles`, payload);
+  }
+
+  /** 🔐 Change logged-in user's password */
+  changePassword(model: ChangePasswordRequest): Observable<void> {
+    return this.http.post<void>(`${this.base}/change-password`, model);
   }
 }
