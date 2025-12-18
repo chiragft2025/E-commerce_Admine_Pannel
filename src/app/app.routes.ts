@@ -31,6 +31,8 @@ import { UserChangePassword } from './User/user-change-password/user-change-pass
 export const routes: Routes = [
   { path: 'login', component: Login },
   { path: 'register', component: Register },
+  {path: 'forgot-password', loadComponent: () => import('./auth/forgot-password/forgot-password').then(m => m.ForgotPassword)},
+  {path: 'reset-password', loadComponent: () => import('./auth/reset-password/reset-password').then(m => m.ResetPassword)},
   { path: 'forbidden', component: Forbidden },
 
   {

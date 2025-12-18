@@ -34,13 +34,13 @@ export class Auth {
     }
   }
 
+  // ---------------- EXISTING METHODS (UNCHANGED) ----------------
+
   login(model: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/login`, model).pipe(
       tap(res => {
-        // log raw response for debugging
         console.log('Auth.login raw response:', res);
 
-        // try several common places where token might appear
         const token =
           res?.accessToken ??
           res?.token ??
@@ -75,41 +75,35 @@ export class Auth {
     this._permissions.next([]);
   }
 
-  /** Return stored token (convenience) */
   getToken(): string | null {
     return this.token.getAccessToken();
   }
 
-  /** Extract user id from JWT 'sub' or 'nameid' claim (returns number or null) */
   getUserId(): number | null {
     const payload = this._readTokenPayload();
     if (!payload) return null;
-    const sub = payload.sub ?? payload.nameid ?? payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+    const sub =
+      payload.sub ??
+      payload.nameid ??
+      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
     const n = Number(sub);
     return isNaN(n) ? null : n;
   }
 
-  /** Extract username from JWT 'unique_name' or 'name' claim */
   getUserName(): string | null {
     const payload = this._readTokenPayload();
     if (!payload) return null;
     return payload.unique_name ?? payload.name ?? null;
   }
 
-  /** Return currently loaded permissions (array) */
   getPermissions(): string[] {
     return this._permissions.getValue();
   }
 
-  /** Check if current user has permission code */
   hasPermission(code: string): boolean {
     return this.getPermissions().includes(code);
   }
 
-  /**
-   * Parse token and populate permissions BehaviorSubject.
-   * Accepts token with 'permission' claim as either array or single string.
-   */
   private loadPermissionsFromToken(token: string) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
@@ -120,14 +114,11 @@ export class Auth {
       if (Array.isArray(claim)) {
         perms = claim.map(String);
       } else if (typeof claim === 'string') {
-        // sometimes single string or comma separated
-        if (claim.includes(',')) perms = claim.split(',').map(s => s.trim());
-        else perms = [claim];
-      } else {
-        perms = [];
+        perms = claim.includes(',')
+          ? claim.split(',').map(s => s.trim())
+          : [claim];
       }
 
-      // normalize and set
       this._permissions.next(Array.from(new Set(perms.filter(Boolean))));
     } catch (err) {
       console.warn('Auth.loadPermissionsFromToken: failed to parse token', err);
@@ -135,7 +126,6 @@ export class Auth {
     }
   }
 
-  /** read payload helper */
   private _readTokenPayload(): any | null {
     const token = this.token.getAccessToken();
     if (!token) return null;
@@ -144,5 +134,44 @@ export class Auth {
     } catch {
       return null;
     }
+  }
+
+  // ---------------- NEW METHODS (FORGOT PASSWORD FLOW) ----------------
+
+  /**
+   * Step 1: Request OTP for password reset
+   * Backend: POST /api/auth/forgot-password
+   */
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/forgot-password`, {
+      email: email.trim().toLowerCase(),
+    });
+  }
+
+  /**
+   * Step 2: Verify OTP
+   * Backend: POST /api/auth/verify-otp
+   */
+  verifyOtp(email: string, otp: string): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/verify-otp`, {
+      email: email.trim().toLowerCase(),
+      otp: otp.trim(),
+    });
+  }
+
+  /**
+   * Step 3: Reset password using OTP
+   * Backend: POST /api/auth/reset-password
+   */
+  resetPassword(data: {
+    email: string;
+    otp: string;
+    newPassword: string;
+  }): Observable<void> {
+    return this.http.post<void>(`${this.baseUrl}/reset-password`, {
+      email: data.email.trim().toLowerCase(),
+      otp: data.otp.trim(),
+      newPassword: data.newPassword,
+    });
   }
 }
